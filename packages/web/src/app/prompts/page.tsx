@@ -1,16 +1,17 @@
-import { findAllPrompts, findTagsByPromptId, findPromptsWithoutEmbeddings } from '@cpm/db';
-import { PromptCard } from '@/components/prompt-card';
+import { findAllPrompts, findTagsByPromptId, findPromptsWithoutEmbeddings, findAllDistinctTags } from '@cpm/db';
 import { SemanticSearch } from '@/components/semantic-search';
 import { BackfillBanner } from '@/components/backfill-banner';
+import { PromptListClient } from '@/components/prompt-list-client';
 import { Separator } from '@/components/ui/separator';
 
 export default function PromptsPage() {
 	const allPrompts = findAllPrompts();
 	const unembeddedCount = findPromptsWithoutEmbeddings().length;
+	const allTags = findAllDistinctTags();
 
 	const promptsWithTags = allPrompts.map((prompt) => {
 		const tags = findTagsByPromptId(prompt.id).map((t) => t.tag);
-		return { ...prompt, tags };
+		return { ...prompt, tags, rating: prompt.rating ?? null };
 	});
 
 	return (
@@ -28,25 +29,7 @@ export default function PromptsPage() {
 
 			<Separator />
 
-			{promptsWithTags.length === 0 ? (
-				<p className="text-center text-muted-foreground py-12">
-					No prompts yet. Generate your first Prompt Contract from the home page.
-				</p>
-			) : (
-				<div className="space-y-4">
-					{promptsWithTags.map((prompt) => (
-						<PromptCard
-							key={prompt.id}
-							id={prompt.id}
-							title={prompt.title}
-							description={prompt.description}
-							tags={prompt.tags}
-							rating={prompt.rating}
-							createdAt={prompt.createdAt}
-						/>
-					))}
-				</div>
-			)}
+			<PromptListClient prompts={promptsWithTags} allTags={allTags} />
 		</div>
 	);
 }
