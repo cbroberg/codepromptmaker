@@ -5,7 +5,7 @@ import { Check, Copy, Terminal } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
 const HANDSHAKE = 'Read CLAUDE.md and confirm you understand the project constraints before doing anything.';
@@ -107,14 +107,43 @@ export function PromptOutput({
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-4">
-        <EditableSection title="GOAL" value={goal} onChange={setGoal} />
-        <Separator />
-        <EditableSection title="CONSTRAINTS" value={constraints} onChange={setConstraints} />
-        <Separator />
-        <EditableSection title="FORMAT" value={format} onChange={setFormat} />
-        <Separator />
-        <EditableSection title="FAILURE CONDITIONS" value={failureConditions} onChange={setFailureConditions} />
+      <CardContent>
+        <Tabs defaultValue="goal">
+          <TabsList className="w-full grid grid-cols-4">
+            <TabsTrigger value="goal">Goal</TabsTrigger>
+            <TabsTrigger value="constraints">Constraints</TabsTrigger>
+            <TabsTrigger value="format">Format</TabsTrigger>
+            <TabsTrigger value="failures">Failures</TabsTrigger>
+          </TabsList>
+          <TabsContent value="goal" className="mt-4">
+            <Textarea
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              className="min-h-[300px] resize-y text-sm font-mono"
+            />
+          </TabsContent>
+          <TabsContent value="constraints" className="mt-4">
+            <Textarea
+              value={constraints}
+              onChange={(e) => setConstraints(e.target.value)}
+              className="min-h-[300px] resize-y text-sm font-mono"
+            />
+          </TabsContent>
+          <TabsContent value="format" className="mt-4">
+            <Textarea
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+              className="min-h-[300px] resize-y text-sm font-mono"
+            />
+          </TabsContent>
+          <TabsContent value="failures" className="mt-4">
+            <Textarea
+              value={failureConditions}
+              onChange={(e) => setFailureConditions(e.target.value)}
+              className="min-h-[300px] resize-y text-sm font-mono"
+            />
+          </TabsContent>
+        </Tabs>
       </CardContent>
       {(tokensUsed || model) && (
         <CardFooter className="text-xs text-muted-foreground">
@@ -124,27 +153,5 @@ export function PromptOutput({
         </CardFooter>
       )}
     </Card>
-  );
-}
-
-function EditableSection({
-  title,
-  value,
-  onChange,
-}: {
-  title: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div>
-      <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{title}</h3>
-      <Textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="min-h-[80px] resize-y text-sm font-mono"
-        rows={Math.max(3, value.split('\n').length)}
-      />
-    </div>
   );
 }
