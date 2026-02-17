@@ -8,6 +8,7 @@ export function registerRun(program) {
     .option('--autonomy <level>', 'Autonomy level: single, supervised, full', 'supervised')
     .option('--max-iterations <n>', 'Maximum iterations', '10')
     .option('--cooldown <seconds>', 'Cooldown between iterations', '10')
+    .option('--dir <path>', 'Target directory for runner', '.')
     .action((_id, _options) => {
       info('cpm run — not yet implemented');
     });
