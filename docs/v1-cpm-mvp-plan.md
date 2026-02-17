@@ -641,12 +641,12 @@ Bemærk: Brugerens `input_text` kan være på ethvert sprog — CPM accepterer i
 - [x] CLAUDE.md handshake prepended automatisk
 - [x] Copy-to-clipboard fungerer med ét klik
 - [x] Alle prompts gemmes i database med metadata
-- [ ] Prompts med søgning og filtrering fungerer
-- [ ] Rating og notes kan tilføjes til gemte prompts (mangler rating/notes kolonner i DB)
+- [x] Prompts med søgning og filtrering fungerer
+- [x] Rating og notes kan tilføjes til gemte prompts (mangler rating/notes kolonner i DB)
 - [x] App kører lokalt med `pnpm dev` (Turbo starter @cpm/web)
 - [x] Responsive UI with Tailwind CSS v4 (CSS-first config) + shadcn/ui, dark mode default with theme toggle
 - [x] Alle API routes har Zod validation
-- [ ] TypeScript strict mode, ingen `any` types
+- [x] TypeScript strict mode, ingen `any` types
 - [x] API routes returnerer rent JSON (CLI + web kompatibelt)
 - [x] `@cpm/db` queries bruges af både `@cpm/web` og `@cpm/cli` — ingen duplikering
 - [x] `@cpm/shared` services er platform-agnostisk (ingen Next.js imports)
