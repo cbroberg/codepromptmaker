@@ -1,0 +1,20 @@
+{
+  "name": "@cpm/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cpm": "./bin/cpm.mjs"
+  },
+  "scripts": {
+    "build": "echo 'CLI uses pure .mjs — no build step'",
+    "clean": "echo 'Nothing to clean'"
+  },
+  "dependencies": {
+    "@cpm/shared": "workspace:*",
+    "@cpm/db": "workspace:*",
+    "@cpm/runner": "workspace:*",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3"
+  }
+}
