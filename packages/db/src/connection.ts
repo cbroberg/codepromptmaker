@@ -56,4 +56,8 @@ sqlite.exec(`
   );
 `);
 
+// Migrations for columns added after initial schema
+try { sqlite.exec('ALTER TABLE prompts ADD COLUMN rating INTEGER'); } catch { /* column exists */ }
+try { sqlite.exec('ALTER TABLE prompts ADD COLUMN notes TEXT'); } catch { /* column exists */ }
+
 export const db = drizzle(sqlite, { schema });

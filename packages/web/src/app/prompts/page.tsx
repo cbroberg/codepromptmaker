@@ -41,6 +41,7 @@ export default function PromptsPage() {
 							title={prompt.title}
 							description={prompt.description}
 							tags={prompt.tags}
+							rating={prompt.rating}
 							createdAt={prompt.createdAt}
 						/>
 					))}

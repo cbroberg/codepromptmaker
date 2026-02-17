@@ -1,4 +1,4 @@
-import { eq, desc, isNotNull, isNull, inArray } from 'drizzle-orm';
+import { eq, desc, isNotNull, isNull, inArray, sql } from 'drizzle-orm';
 import { db } from '../connection';
 import { prompts, promptTags } from '../schema';
 
@@ -59,4 +59,21 @@ export function findPromptsWithoutEmbeddings() {
 export function findPromptsByIds(ids: string[]) {
   if (ids.length === 0) return [];
   return db.select().from(prompts).where(inArray(prompts.id, ids)).all();
+}
+
+export function updatePromptRating(id: string, rating: number | null) {
+  return db.update(prompts).set({ rating, updatedAt: new Date().toISOString() }).where(eq(prompts.id, id)).run();
+}
+
+export function updatePromptNotes(id: string, notes: string | null) {
+  return db.update(prompts).set({ notes, updatedAt: new Date().toISOString() }).where(eq(prompts.id, id)).run();
+}
+
+export function findAllDistinctTags() {
+  return db
+    .selectDistinct({ tag: promptTags.tag })
+    .from(promptTags)
+    .orderBy(sql`${promptTags.tag} COLLATE NOCASE`)
+    .all()
+    .map((row) => row.tag);
 }

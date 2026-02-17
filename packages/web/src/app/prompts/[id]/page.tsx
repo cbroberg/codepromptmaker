@@ -29,6 +29,8 @@ export default async function PromptDetailPage({
         failureConditions={prompt.failureConditions}
         language={prompt.language}
         tags={tags}
+        rating={prompt.rating ?? null}
+        notes={prompt.notes ?? null}
         createdAt={prompt.createdAt}
       />
     </div>

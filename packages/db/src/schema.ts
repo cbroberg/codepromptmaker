@@ -23,6 +23,8 @@ export const prompts = sqliteTable('prompts', {
   fullPrompt: text('full_prompt').notNull(),
   language: text('language').notNull().default('en'),
   profileId: text('profile_id').references(() => developerProfiles.id),
+  rating: integer('rating'),
+  notes: text('notes'),
   embedding: blob('embedding'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),

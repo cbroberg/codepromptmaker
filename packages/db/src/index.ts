@@ -25,6 +25,9 @@ export {
   findAllPromptsWithEmbeddings,
   findPromptsWithoutEmbeddings,
   findPromptsByIds,
+  updatePromptRating,
+  updatePromptNotes,
+  findAllDistinctTags,
 } from './queries/prompts';
 
 // Queries — runner

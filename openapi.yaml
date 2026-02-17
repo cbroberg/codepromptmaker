@@ -100,6 +100,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    patch:
+      summary: Update prompt rating or notes
+      description: Partially updates a prompt's rating and/or notes fields.
+      operationId: updatePrompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePromptInput'
+      responses:
+        '200':
+          description: Updated prompt with tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptWithTags'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Prompt not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       summary: Delete a prompt
       description: Deletes a Prompt Contract and its associated tags.
@@ -395,10 +437,34 @@ components:
         updatedAt:
           type: string
           format: date-time
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+          description: User quality rating (1-5)
+        notes:
+          type: string
+          nullable: true
+          description: User notes on prompt performance
         tags:
           type: array
           items:
             type: string
+
+    UpdatePromptInput:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+          description: Quality rating (1-5), or null to clear
+        notes:
+          type: string
+          nullable: true
+          description: User notes, or null to clear
 
     DeveloperProfile:
       type: object

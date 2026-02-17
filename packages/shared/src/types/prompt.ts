@@ -11,6 +11,8 @@ export interface PromptContract {
   fullPrompt: string;
   language: PromptLanguage;
   tags: string[];
+  rating: number | null;
+  notes: string | null;
   profileId: string | null;
   embedding: Buffer | null;
   createdAt: string;
