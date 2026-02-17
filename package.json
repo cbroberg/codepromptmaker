@@ -22,6 +22,10 @@
       "better-sqlite3",
       "esbuild",
       "sharp"
+    ],
+    "ignoredBuiltDependencies": [
+      "onnxruntime-node",
+      "protobufjs"
     ]
   }
 }

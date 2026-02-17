@@ -206,7 +206,7 @@ codepromptmaker/
 │           │   ├── layout.tsx         # Root layout with ThemeProvider (next-themes), dark mode default
 │           │   ├── page.tsx           # Main prompt generator page
 │           │   ├── prompts/
-│           │   │   ├── page.tsx       # Prompt bank/history (list view)
+│           │   │   ├── page.tsx       # Prompts/history (list view)
 │           │   │   └── [id]/page.tsx  # Single prompt detail view + "Launch in cc" button
 │           │   ├── profile/
 │           │   │   └── page.tsx       # Developer profile settings
@@ -217,7 +217,7 @@ codepromptmaker/
 │           ├── components/
 │           │   ├── prompt-generator.tsx   # Main input form (client component)
 │           │   ├── prompt-output.tsx      # Rendered prompt with copy button
-│           │   ├── prompt-card.tsx        # Card for prompt bank list
+│           │   ├── prompt-card.tsx        # Card for prompts list
 │           │   ├── launch-in-cc.tsx       # "Launch in cc" button
 │           │   ├── profile-form.tsx       # Developer profile editor
 │           │   ├── sidebar.tsx            # Navigation sidebar
@@ -542,7 +542,7 @@ cpm generate "tekst"         # Bruger cloud API hvis logget ind, ellers lokal
 - "Save to Bank" knap (gemmer automatisk, men kan tilføje rating/notes)
 - Viser token-forbrug og model info
 
-### 2. Prompt Bank (`/prompts`)
+### 2. Prompt (`/prompts`)
 - Liste af alle gemte prompts, nyeste først
 - Søgefelt (full-text search i input og output)
 - Filtrér på: project name, tags, rating, dato-range
@@ -641,7 +641,7 @@ Bemærk: Brugerens `input_text` kan være på ethvert sprog — CPM accepterer i
 - [ ] CLAUDE.md handshake prepended automatisk
 - [ ] Copy-to-clipboard fungerer med ét klik
 - [ ] Alle prompts gemmes i database med metadata
-- [ ] Prompt Bank med søgning og filtrering fungerer
+- [ ] Prompts med søgning og filtrering fungerer
 - [ ] Rating og notes kan tilføjes til gemte prompts
 - [ ] App kører lokalt med `pnpm dev` (Turbo starter @cpm/web)
 - [ ] Responsive UI with Tailwind CSS v4 (CSS-first config) + shadcn/ui, dark mode default with theme toggle

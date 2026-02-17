@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CodePromptMaker API
   description: API for generating, managing, and retrieving Prompt Contracts for Claude Code.
-  version: 1.0.0
+  version: 2.0.0
   contact:
     name: CodePromptMaker
     url: https://codepromptmaker.com
@@ -128,6 +128,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/prompts/search:
+    get:
+      summary: Semantic search over prompts
+      description: >
+        Embeds the query text and returns prompts ranked by semantic similarity.
+        Requires at least 3 characters. Uses the configured embedding provider.
+      operationId: searchPrompts
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+          description: Search query text
+      responses:
+        '200':
+          description: Ranked search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Query too short
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/prompts/backfill:
+    post:
+      summary: Backfill embeddings for prompts without them
+      description: >
+        Finds all prompts that lack embeddings and generates them sequentially.
+        Useful after first enabling RAG or after switching embedding providers.
+      operationId: backfillEmbeddings
+      responses:
+        '200':
+          description: Backfill results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackfillResponse'
         '500':
           description: Server error
           content:
@@ -282,6 +340,23 @@ components:
         createdAt:
           type: string
           format: date-time
+        similarPrompts:
+          type: array
+          description: Similar past prompts found via RAG (v2)
+          items:
+            $ref: '#/components/schemas/SimilarPromptRef'
+
+    SimilarPromptRef:
+      type: object
+      properties:
+        promptId:
+          type: string
+          format: uuid
+        similarity:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
 
     PromptWithTags:
       type: object
@@ -387,6 +462,49 @@ components:
         promptLanguage:
           type: string
           enum: [en, da]
+
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        similarity:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+
+    BackfillResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total prompts that needed embeddings
+        processed:
+          type: integer
+          description: Successfully embedded count
+        errors:
+          type: array
+          description: Errors encountered during backfill (only present if errors occurred)
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              error:
+                type: string
 
     Error:
       type: object

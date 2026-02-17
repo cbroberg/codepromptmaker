@@ -84,7 +84,7 @@ export function PromptOutput({
               Copy Prompt
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => copyToClipboard(`cpm run ${id} --dir .`, 'cli')}
             >
@@ -93,7 +93,7 @@ export function PromptOutput({
               ) : (
                 <Terminal className="mr-1 h-4 w-4" />
               )}
-              Launch in cc
+              Copy CLI Command
             </Button>
           </div>
         </div>

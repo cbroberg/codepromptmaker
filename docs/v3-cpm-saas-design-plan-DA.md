@@ -136,7 +136,7 @@ Subheadline:       20-24px, font-normal, text-secondary
 **5. Feature Grid (2x3 eller 3x2)**
 - 🎯 **Prompt Contracts** — GOAL, CONSTRAINTS, FORMAT, FAILURE CONDITIONS auto-genereret
 - 👤 **Developer Profile** — Gem din stak, regler og patterns. Injiceret i hver prompt
-- 📚 **Prompt Bank** — Søgbar historik over alle dine prompts med rating og noter
+- 📚 **Prompts** — Søgbar historik over alle dine prompts med rating og noter
 - ⌨️ **CLI Tool** — `cpm generate "..."` direkte fra terminalen. Pipes til cc
 - 📋 **One-Click Copy** — Kopiér prompt til clipboard med ét klik. Klar til cc
 - 🔄 **CLAUDE.md Handshake** — Auto-prepended constraint verification i hver prompt
@@ -379,7 +379,7 @@ Analytics:          Plausible eller Umami (privacy-first, open source)
 ### Eksisterende App Routes (bag auth)
 ```
 /app                    Dashboard / Prompt Generator (dark mode default)
-/app/prompts            Prompt Bank
+/app/prompts            Prompts
 /app/prompts/[id]       Prompt Detail + Launch in cc
 /app/profile            Developer Profile
 /app/settings           Account settings, billing, API tokens

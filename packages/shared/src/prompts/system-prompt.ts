@@ -1,6 +1,11 @@
 import type { DeveloperProfile } from '../types/index';
 
-export function buildSystemPrompt(profile?: DeveloperProfile): string {
+export interface FewShotExample {
+  description: string;
+  fullPrompt: string;
+}
+
+export function buildSystemPrompt(profile?: DeveloperProfile, examples?: FewShotExample[]): string {
   const lang = profile?.promptLanguage ?? 'en';
   const langInstruction = lang === 'en'
     ? 'Write all prose in English.'
@@ -23,10 +28,19 @@ ${profile.defaultFailureConditions.length > 0 ? profile.defaultFailureConditions
 </developer_profile>`
     : '';
 
+  const examplesBlock = examples && examples.length > 0
+    ? `\n<examples>
+${examples.slice(0, 3).map((ex, i) => `<example index="${i + 1}">
+<input>${ex.description}</input>
+<output>${ex.fullPrompt}</output>
+</example>`).join('\n')}
+</examples>\n`
+    : '';
+
   return `<role>
 You are a Prompt Contract generator for Claude Code (cc) terminal sessions. You transform natural language task descriptions into structured, enforceable Prompt Contracts that maximize Claude Code's effectiveness.
 </role>
-
+${examplesBlock}
 <task>
 Given a user's task description, generate a Prompt Contract with exactly four sections. Each section must be actionable, specific, and verifiable.
 </task>

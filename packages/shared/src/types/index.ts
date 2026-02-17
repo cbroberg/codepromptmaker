@@ -20,3 +20,9 @@ export type {
   StartRunnerInput,
   RunnerProgress,
 } from './runner';
+
+export type {
+  EmbeddingProvider,
+  EmbeddingResult,
+  SimilarPrompt,
+} from './embedding';

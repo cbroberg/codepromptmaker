@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, isNotNull, isNull, inArray } from 'drizzle-orm';
 import { db } from '../connection';
 import { prompts, promptTags } from '../schema';
 
@@ -34,4 +34,29 @@ export function deletePrompt(id: string) {
     tx.delete(promptTags).where(eq(promptTags.promptId, id)).run();
     tx.delete(prompts).where(eq(prompts.id, id)).run();
   });
+}
+
+export function updatePromptEmbedding(id: string, embedding: Buffer) {
+  return db.update(prompts).set({ embedding }).where(eq(prompts.id, id)).run();
+}
+
+export function findAllPromptsWithEmbeddings() {
+  return db
+    .select({ id: prompts.id, embedding: prompts.embedding })
+    .from(prompts)
+    .where(isNotNull(prompts.embedding))
+    .all();
+}
+
+export function findPromptsWithoutEmbeddings() {
+  return db
+    .select({ id: prompts.id, description: prompts.description, fullPrompt: prompts.fullPrompt })
+    .from(prompts)
+    .where(isNull(prompts.embedding))
+    .all();
+}
+
+export function findPromptsByIds(ids: string[]) {
+  if (ids.length === 0) return [];
+  return db.select().from(prompts).where(inArray(prompts.id, ids)).all();
 }

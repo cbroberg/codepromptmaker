@@ -21,6 +21,10 @@ export {
   findAllPrompts,
   findTagsByPromptId,
   deletePrompt,
+  updatePromptEmbedding,
+  findAllPromptsWithEmbeddings,
+  findPromptsWithoutEmbeddings,
+  findPromptsByIds,
 } from './queries/prompts';
 
 // Queries — runner

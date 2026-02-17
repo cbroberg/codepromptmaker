@@ -104,7 +104,7 @@ Build order: shared → db → runner → cli → web
 
 ### Schema Highlights
 - `developer_profiles` — User stack, preferences, rules (injected into CONSTRAINTS)
-- `prompts` — All inputs + generated Prompt Contracts (prompt bank)
+- `prompts` — All inputs + generated Prompt Contracts (prompts (prompt bank))
 - `prompts.language` — Tracks which language the prompt was generated in
 - `runner_sessions` — Runner status tracking (started, iteration, completed)
 - Embedding column prepared but nullable in v1

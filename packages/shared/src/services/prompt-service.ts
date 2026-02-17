@@ -1,6 +1,7 @@
 import type { DeveloperProfile, GeneratePromptInput, PromptContractSections } from '../types/index';
 import { getAnthropicClient } from '../anthropic';
 import { buildSystemPrompt } from '../prompts/system-prompt';
+import type { FewShotExample } from '../prompts/system-prompt';
 import { buildContract, parseContract } from '../prompts/contract-builder';
 
 export interface GeneratePromptResult {
@@ -19,13 +20,14 @@ export interface GeneratePromptResult {
 export async function generatePromptContract(
   input: GeneratePromptInput,
   profile?: DeveloperProfile,
+  examples?: FewShotExample[],
 ): Promise<GeneratePromptResult> {
   const client = getAnthropicClient();
   if (!client) {
     throw new Error('ANTHROPIC_API_KEY is not configured. Set it in .env.local');
   }
 
-  const systemPrompt = buildSystemPrompt(profile);
+  const systemPrompt = buildSystemPrompt(profile, examples);
   const language = input.language ?? profile?.promptLanguage ?? 'en';
 
   const response = await client.messages.create({

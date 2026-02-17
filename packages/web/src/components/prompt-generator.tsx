@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { PromptOutput } from '@/components/prompt-output';
+import { SimilarPromptsPanel } from '@/components/similar-prompts-panel';
 import { toast } from 'sonner';
 
 interface GeneratedPrompt {
@@ -21,6 +22,7 @@ interface GeneratedPrompt {
   tags: string[];
   tokensUsed: number;
   model: string;
+  similarPrompts?: Array<{ promptId: string; similarity: number }>;
 }
 
 interface PromptGeneratorProps {
@@ -147,18 +149,23 @@ export function PromptGenerator({ profileId }: PromptGeneratorProps) {
       </div>
 
       {result && (
-        <PromptOutput
-          id={result.id}
-          title={result.title}
-          fullPrompt={result.fullPrompt}
-          goal={result.goal}
-          constraints={result.constraints}
-          format={result.format}
-          failureConditions={result.failureConditions}
-          tags={result.tags}
-          tokensUsed={result.tokensUsed}
-          model={result.model}
-        />
+        <>
+          <PromptOutput
+            id={result.id}
+            title={result.title}
+            fullPrompt={result.fullPrompt}
+            goal={result.goal}
+            constraints={result.constraints}
+            format={result.format}
+            failureConditions={result.failureConditions}
+            tags={result.tags}
+            tokensUsed={result.tokensUsed}
+            model={result.model}
+          />
+          {result.similarPrompts && result.similarPrompts.length > 0 && (
+            <SimilarPromptsPanel similarPrompts={result.similarPrompts} />
+          )}
+        </>
       )}
     </div>
   );
