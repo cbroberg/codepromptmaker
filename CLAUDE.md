@@ -265,6 +265,24 @@ Claude (cc) is strongest at implementation code, not creative visual ideation.
 
 ---
 
+## API Specification
+
+The API is documented in `openapi.yaml` at the project root (OpenAPI 3.1.0).
+
+**Rule:** Whenever an API route is added, changed, or removed in `packages/web/src/app/api/`, you MUST update `openapi.yaml` to match. This includes new endpoints, changed request/response schemas, new status codes, and removed routes. The spec is the single source of truth for the API contract.
+
+Current endpoints (v1):
+- `POST /api/generate` — Generate a Prompt Contract via Claude API
+- `GET /api/prompts` — List all prompts (newest first)
+- `GET /api/prompts/{id}` — Get a single prompt
+- `DELETE /api/prompts/{id}` — Delete a prompt
+- `GET /api/profile` — Get developer profile
+- `PUT /api/profile` — Create or update developer profile
+- `GET /api/runner` — Runner status (stub, 501)
+- `POST /api/runner` — Start runner (stub, 501)
+
+---
+
 ## Key Patterns to Follow
 
 1. Always read this CLAUDE.md before starting work
@@ -274,6 +292,7 @@ Claude (cc) is strongest at implementation code, not creative visual ideation.
 5. All cross-package imports via `@cpm/*` workspace aliases
 6. Test after each change, lint before marking complete
 7. Commit after each working milestone
+8. Update `openapi.yaml` whenever API routes change
 
 ## Key Patterns to Avoid
 

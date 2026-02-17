@@ -1,16 +1,23 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../connection.js';
-import { developerProfiles } from '../schema.js';
+import { db } from '../connection';
+import { developerProfiles } from '../schema';
 
-export async function insertProfile(_data: typeof developerProfiles.$inferInsert) {
-  // TODO: Insert profile
-  throw new Error('Not implemented');
+export function insertProfile(data: typeof developerProfiles.$inferInsert) {
+  return db.insert(developerProfiles).values(data).run();
 }
 
-export async function findProfileById(id: string) {
+export function updateProfile(id: string, data: Partial<typeof developerProfiles.$inferInsert>) {
+  return db.update(developerProfiles).set(data).where(eq(developerProfiles.id, id)).run();
+}
+
+export function findProfileById(id: string) {
   return db.select().from(developerProfiles).where(eq(developerProfiles.id, id)).get();
 }
 
-export async function findAllProfiles() {
+export function findAllProfiles() {
   return db.select().from(developerProfiles).all();
+}
+
+export function getFirstProfile() {
+  return db.select().from(developerProfiles).get();
 }

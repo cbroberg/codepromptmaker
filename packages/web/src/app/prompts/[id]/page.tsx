@@ -1,14 +1,36 @@
+import { notFound } from 'next/navigation';
+import { findPromptById, findTagsByPromptId } from '@cpm/db';
+import { PromptDetailView } from '@/components/prompt-detail-view';
+
 export default async function PromptDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const prompt = findPromptById(id);
+
+  if (!prompt) {
+    notFound();
+  }
+
+  const tags = findTagsByPromptId(prompt.id).map((t) => t.tag);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-3xl font-bold tracking-tight">Prompt Detail</h1>
-      <p className="mt-4 text-muted-foreground">Prompt ID: {id}</p>
-    </main>
+    <div className="mx-auto max-w-3xl">
+      <PromptDetailView
+        id={prompt.id}
+        title={prompt.title}
+        description={prompt.description}
+        fullPrompt={prompt.fullPrompt}
+        goal={prompt.goal}
+        constraints={prompt.constraints}
+        format={prompt.format}
+        failureConditions={prompt.failureConditions}
+        language={prompt.language}
+        tags={tags}
+        createdAt={prompt.createdAt}
+      />
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { PromptLanguage } from './languages.js';
+import type { PromptLanguage } from './languages';
 
 export interface DeveloperProfile {
   id: string;

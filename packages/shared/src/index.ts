@@ -1,14 +1,14 @@
 // Types
-export * from './types/index.js';
+export * from './types/index';
 
 // Services
-export * from './services/index.js';
+export * from './services/index';
 
 // Prompts
-export * from './prompts/index.js';
+export * from './prompts/index';
 
 // Anthropic client
-export { getAnthropicClient } from './anthropic.js';
+export { getAnthropicClient } from './anthropic';
 
 // Utils
-export { generateId, nowISO } from './utils.js';
+export { generateId, nowISO } from './utils';

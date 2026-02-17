@@ -1,4 +1,4 @@
-import type { RunnerSession, StartRunnerInput, RunnerProgress } from '../types/index.js';
+import type { RunnerSession, StartRunnerInput, RunnerProgress } from '../types/index';
 
 export async function startRunner(_input: StartRunnerInput): Promise<RunnerSession> {
   // TODO: Create runner session and start loop

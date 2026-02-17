@@ -1,0 +1,405 @@
+openapi: 3.1.0
+info:
+  title: CodePromptMaker API
+  description: API for generating, managing, and retrieving Prompt Contracts for Claude Code.
+  version: 1.0.0
+  contact:
+    name: CodePromptMaker
+    url: https://codepromptmaker.com
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://codepromptmaker.com
+    description: Production
+
+paths:
+  /api/generate:
+    post:
+      summary: Generate a Prompt Contract
+      description: >
+        Takes a natural language description and generates a structured Prompt Contract
+        using Claude API. Optionally uses a Developer Profile for context injection.
+        The generated prompt is automatically persisted to the database.
+      operationId: generatePromptContract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneratePromptInput'
+      responses:
+        '200':
+          description: Prompt Contract generated and saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratePromptResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Server error (e.g. missing API key, Claude API failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/prompts:
+    get:
+      summary: List all prompts
+      description: Returns all saved Prompt Contracts ordered by creation date (newest first), with tags.
+      operationId: listPrompts
+      responses:
+        '200':
+          description: Array of prompts with tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PromptWithTags'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/prompts/{id}:
+    get:
+      summary: Get a prompt by ID
+      description: Returns a single Prompt Contract with its tags.
+      operationId: getPromptById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Prompt found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptWithTags'
+        '404':
+          description: Prompt not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a prompt
+      description: Deletes a Prompt Contract and its associated tags.
+      operationId: deletePrompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Prompt deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '404':
+          description: Prompt not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/profile:
+    get:
+      summary: Get developer profile
+      description: Returns the current developer profile, or null if none exists.
+      operationId: getProfile
+      responses:
+        '200':
+          description: Profile found or null
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/DeveloperProfile'
+                  - type: 'null'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Create or update developer profile
+      description: >
+        Creates a new profile if none exists, or updates the existing one.
+        Only one profile exists in v1 (single-user local app).
+      operationId: upsertProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileInput'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeveloperProfile'
+        '201':
+          description: Profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeveloperProfile'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/runner:
+    get:
+      summary: Get runner status (stub)
+      description: Not yet implemented. Will return runner session status in v4.
+      operationId: getRunnerStatus
+      responses:
+        '501':
+          description: Not implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Start runner session (stub)
+      description: Not yet implemented. Will trigger a runner session in v4.
+      operationId: startRunner
+      responses:
+        '501':
+          description: Not implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    GeneratePromptInput:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          minLength: 10
+          description: Natural language description of the task
+          example: Add dark mode toggle to the settings page
+        profileId:
+          type: string
+          format: uuid
+          description: Optional developer profile ID for context injection
+        language:
+          type: string
+          enum: [en, da]
+          description: Output language (defaults to profile setting or 'en')
+        tags:
+          type: array
+          items:
+            type: string
+          description: Optional tags for categorization
+          example: [ui, feature]
+
+    GeneratePromptResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        goal:
+          type: string
+        constraints:
+          type: string
+        format:
+          type: string
+        failureConditions:
+          type: string
+        fullPrompt:
+          type: string
+          description: Complete Prompt Contract with CLAUDE.md handshake prepended
+        language:
+          type: string
+          enum: [en, da]
+        tags:
+          type: array
+          items:
+            type: string
+        tokensUsed:
+          type: integer
+          description: Total tokens consumed (input + output)
+        model:
+          type: string
+          description: Claude model used
+          example: claude-sonnet-4-20250514
+        createdAt:
+          type: string
+          format: date-time
+
+    PromptWithTags:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        goal:
+          type: string
+        constraints:
+          type: string
+        format:
+          type: string
+        failureConditions:
+          type: string
+        fullPrompt:
+          type: string
+        language:
+          type: string
+          enum: [en, da]
+        profileId:
+          type: string
+          format: uuid
+          nullable: true
+        embedding:
+          type: string
+          nullable: true
+          description: Reserved for v2 RAG embeddings
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+
+    DeveloperProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        stack:
+          type: array
+          items:
+            type: string
+          example: [Next.js 16, React 19, TypeScript]
+        hardRules:
+          type: array
+          items:
+            type: string
+        patterns:
+          type: array
+          items:
+            type: string
+        defaultFailureConditions:
+          type: array
+          items:
+            type: string
+        promptLanguage:
+          type: string
+          enum: [en, da]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpdateProfileInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+        stack:
+          type: array
+          items:
+            type: string
+        hardRules:
+          type: array
+          items:
+            type: string
+        patterns:
+          type: array
+          items:
+            type: string
+        defaultFailureConditions:
+          type: array
+          items:
+            type: string
+        promptLanguage:
+          type: string
+          enum: [en, da]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Validation failed
+        details:
+          type: object
+          description: Flattened Zod validation errors

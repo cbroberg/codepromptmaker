@@ -1,17 +1,15 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../connection.js';
-import { runnerSessions } from '../schema.js';
+import { db } from '../connection';
+import { runnerSessions } from '../schema';
 
-export async function insertRunnerSession(_data: typeof runnerSessions.$inferInsert) {
-  // TODO: Insert runner session
-  throw new Error('Not implemented');
+export function insertRunnerSession(data: typeof runnerSessions.$inferInsert) {
+  return db.insert(runnerSessions).values(data).run();
 }
 
-export async function findRunnerSessionById(id: string) {
+export function findRunnerSessionById(id: string) {
   return db.select().from(runnerSessions).where(eq(runnerSessions.id, id)).get();
 }
 
-export async function updateRunnerSession(_id: string, _data: Partial<typeof runnerSessions.$inferInsert>) {
-  // TODO: Update runner session
-  throw new Error('Not implemented');
+export function updateRunnerSession(id: string, data: Partial<typeof runnerSessions.$inferInsert>) {
+  return db.update(runnerSessions).set(data).where(eq(runnerSessions.id, id)).run();
 }

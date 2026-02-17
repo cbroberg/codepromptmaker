@@ -1,25 +1,31 @@
 // Connection
-export { db } from './connection.js';
+export { db } from './connection';
 
 // Schema
-export * from './schema.js';
+export * from './schema';
 
-// Queries
+// Queries — profiles
+export {
+  insertProfile,
+  updateProfile,
+  findProfileById,
+  findAllProfiles,
+  getFirstProfile,
+} from './queries/profiles';
+
+// Queries — prompts
 export {
   insertPrompt,
+  insertPromptWithTags,
   findPromptById,
   findAllPrompts,
   findTagsByPromptId,
-} from './queries/prompts.js';
+  deletePrompt,
+} from './queries/prompts';
 
-export {
-  insertProfile,
-  findProfileById,
-  findAllProfiles,
-} from './queries/profiles.js';
-
+// Queries — runner
 export {
   insertRunnerSession,
   findRunnerSessionById,
   updateRunnerSession,
-} from './queries/runner.js';
+} from './queries/runner';

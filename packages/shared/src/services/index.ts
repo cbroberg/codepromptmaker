@@ -1,3 +1,4 @@
-export { generatePrompt, getPrompt, listPrompts } from './prompt-service.js';
-export { createProfile, getProfile, updateProfile, getDefaultProfile } from './profile-service.js';
-export { startRunner, getRunnerStatus, stopRunner } from './runner-service.js';
+export { generatePromptContract } from './prompt-service';
+export type { GeneratePromptResult } from './prompt-service';
+export { buildNewProfile } from './profile-service';
+export { startRunner, getRunnerStatus, stopRunner } from './runner-service';

@@ -1,17 +1,17 @@
-export type { PromptLanguage } from './languages.js';
-export { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './languages.js';
+export type { PromptLanguage } from './languages';
+export { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './languages';
 
 export type {
   DeveloperProfile,
   CreateProfileInput,
   UpdateProfileInput,
-} from './profile.js';
+} from './profile';
 
 export type {
   PromptContract,
   GeneratePromptInput,
   PromptContractSections,
-} from './prompt.js';
+} from './prompt';
 
 export type {
   RunnerStatus,
@@ -19,4 +19,4 @@ export type {
   RunnerSession,
   StartRunnerInput,
   RunnerProgress,
-} from './runner.js';
+} from './runner';
