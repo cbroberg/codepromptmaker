@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { findPromptById, findTagsByPromptId, deletePrompt, updatePromptRating, updatePromptNotes } from '@cpm/db';
+import { findPromptById, findTagsByPromptId, deletePrompt, updatePromptTitle, updatePromptRating, updatePromptNotes } from '@cpm/db';
 
 export async function GET(
   _request: Request,
@@ -45,6 +45,7 @@ export async function DELETE(
 }
 
 const patchSchema = z.object({
+  title: z.string().min(1).optional(),
   rating: z.number().int().min(1).max(5).nullable().optional(),
   notes: z.string().nullable().optional(),
 });
@@ -71,6 +72,9 @@ export async function PATCH(
       );
     }
 
+    if (parsed.data.title !== undefined) {
+      updatePromptTitle(id, parsed.data.title);
+    }
     if (parsed.data.rating !== undefined) {
       updatePromptRating(id, parsed.data.rating);
     }

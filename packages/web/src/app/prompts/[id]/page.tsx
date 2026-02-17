@@ -31,6 +31,7 @@ export default async function PromptDetailPage({
         tags={tags}
         rating={prompt.rating ?? null}
         notes={prompt.notes ?? null}
+        profileId={prompt.profileId ?? null}
         createdAt={prompt.createdAt}
       />
     </div>

@@ -61,6 +61,10 @@ export function findPromptsByIds(ids: string[]) {
   return db.select().from(prompts).where(inArray(prompts.id, ids)).all();
 }
 
+export function updatePromptTitle(id: string, title: string) {
+  return db.update(prompts).set({ title, updatedAt: new Date().toISOString() }).where(eq(prompts.id, id)).run();
+}
+
 export function updatePromptRating(id: string, rating: number | null) {
   return db.update(prompts).set({ rating, updatedAt: new Date().toISOString() }).where(eq(prompts.id, id)).run();
 }

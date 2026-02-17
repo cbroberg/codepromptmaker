@@ -25,6 +25,7 @@ export {
   findAllPromptsWithEmbeddings,
   findPromptsWithoutEmbeddings,
   findPromptsByIds,
+  updatePromptTitle,
   updatePromptRating,
   updatePromptNotes,
   findAllDistinctTags,
