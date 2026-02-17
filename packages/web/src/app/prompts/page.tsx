@@ -9,7 +9,7 @@ export default function PromptsPage() {
 	const unembeddedCount = findPromptsWithoutEmbeddings().length;
 	const allTags = findAllDistinctTags();
 
-	const promptsWithTags = allPrompts.map((prompt) => {
+	const promptsWithTags = allPrompts.map(({ embedding: _embedding, ...prompt }) => {
 		const tags = findTagsByPromptId(prompt.id).map((t) => t.tag);
 		return { ...prompt, tags, rating: prompt.rating ?? null };
 	});
