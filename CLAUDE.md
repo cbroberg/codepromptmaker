@@ -80,6 +80,40 @@ Build order: shared → db → runner → cli → web
 - shadcn/ui components + Tailwind CSS v4 for all UI
 - Design inspiration: littlebird.ai (fresh, light) + supabase.com (technical weight)
 
+### Tailwind CSS v4 + next-themes — Critical Gotchas
+
+Three hard-won lessons that apply to ANY project using Tailwind v4 with class-based dark/light theming:
+
+**1. NEVER use `@theme inline` for themeable colors.**
+`@theme inline` resolves color values at build time and bakes literal values (e.g. `background-color: #000`) into utility classes. CSS custom property overrides (`.dark`, `.light`) have ZERO effect because utilities don't use `var()` references. Use `@theme` (without `inline`) with `var()` self-references instead:
+```css
+/* CORRECT — utilities generate var() references, overridable at runtime */
+@theme {
+  --color-background: var(--color-background);
+}
+:root { --color-background: oklch(0 0 0); }        /* dark default */
+:root.light { --color-background: oklch(1 0 0); }   /* light override */
+
+/* WRONG — utilities get hardcoded values, CSS overrides don't work */
+@theme inline {
+  --color-background: oklch(0 0 0);
+}
+```
+
+**2. Use `@custom-variant dark (&:where(.dark, .dark *));` — NOT `&:is(.dark *)`.**
+The `:is()` version only matches children of `.dark`, not the `.dark` element itself, and increases specificity. The `:where()` version matches both and has zero specificity impact. This is per Tailwind v4 docs.
+
+**3. `ThemeProvider` from `next-themes` MUST be wrapped in an explicit `'use client'` component.**
+Importing `ThemeProvider` directly in a server component layout (even though next-themes has `"use client"` internally) breaks the React context in Next.js 16 App Router. `setTheme()` becomes a no-op. Fix: create a `providers.tsx` wrapper:
+```tsx
+// components/providers.tsx
+'use client';
+import { ThemeProvider } from 'next-themes';
+export function Providers({ children }: { children: React.ReactNode }) {
+  return <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>{children}</ThemeProvider>;
+}
+```
+
 ---
 
 ## Version Roadmap

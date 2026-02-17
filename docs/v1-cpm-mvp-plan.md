@@ -633,34 +633,34 @@ Bemærk: Brugerens `input_text` kan være på ethvert sprog — CPM accepterer i
 
 ## Definition of Done — MVP
 
-- [ ] pnpm workspace monorepo med Turbo er konfigureret og `turbo build` kører hele pipeline
-- [ ] Developer Profile kan oprettes og redigeres, gemmes i SQLite via `@cpm/db`
-- [ ] Natural language input → struktureret Prompt Contract via Claude API
-- [ ] Alle 4 Prompt Contract-sektioner genereres korrekt (GOAL, CONSTRAINTS, FORMAT, FAILURE CONDITIONS)
-- [ ] Profil-data injiceres automatisk i CONSTRAINTS
-- [ ] CLAUDE.md handshake prepended automatisk
-- [ ] Copy-to-clipboard fungerer med ét klik
-- [ ] Alle prompts gemmes i database med metadata
+- [x] pnpm workspace monorepo med Turbo er konfigureret og `turbo build` kører hele pipeline
+- [x] Developer Profile kan oprettes og redigeres, gemmes i SQLite via `@cpm/db`
+- [x] Natural language input → struktureret Prompt Contract via Claude API
+- [x] Alle 4 Prompt Contract-sektioner genereres korrekt (GOAL, CONSTRAINTS, FORMAT, FAILURE CONDITIONS)
+- [x] Profil-data injiceres automatisk i CONSTRAINTS
+- [x] CLAUDE.md handshake prepended automatisk
+- [x] Copy-to-clipboard fungerer med ét klik
+- [x] Alle prompts gemmes i database med metadata
 - [ ] Prompts med søgning og filtrering fungerer
-- [ ] Rating og notes kan tilføjes til gemte prompts
-- [ ] App kører lokalt med `pnpm dev` (Turbo starter @cpm/web)
-- [ ] Responsive UI with Tailwind CSS v4 (CSS-first config) + shadcn/ui, dark mode default with theme toggle
-- [ ] Alle API routes har Zod validation
+- [ ] Rating og notes kan tilføjes til gemte prompts (mangler rating/notes kolonner i DB)
+- [x] App kører lokalt med `pnpm dev` (Turbo starter @cpm/web)
+- [x] Responsive UI with Tailwind CSS v4 (CSS-first config) + shadcn/ui, dark mode default with theme toggle
+- [x] Alle API routes har Zod validation
 - [ ] TypeScript strict mode, ingen `any` types
-- [ ] API routes returnerer rent JSON (CLI + web kompatibelt)
-- [ ] `@cpm/db` queries bruges af både `@cpm/web` og `@cpm/cli` — ingen duplikering
-- [ ] `@cpm/shared` services er platform-agnostisk (ingen Next.js imports)
-- [ ] `@cpm/runner` loop engine er isoleret og importerer kun fra `@cpm/db` og `@cpm/shared`
-- [ ] Alle cross-package imports bruger workspace aliases (@cpm/*)
-- [ ] CLI installeres globalt via `cd packages/cli && pnpm link --global` og `cpm --help` virker
-- [ ] `cpm generate "tekst"` genererer Prompt Contract i terminalen
-- [ ] `cpm list` og `cpm show <id>` viser prompt-bank
-- [ ] `cpm copy <id>` kopierer prompt til clipboard via pbcopy
-- [ ] `cpm run <id> --dry-run` viser preview uden at starte cc
-- [ ] runner_sessions tabel tracker CLI-executions
-- [ ] "Launch in cc" knap på prompt detail page genererer korrekt cpm kommando
-- [ ] Developer Profile includes `promptLanguage` selector with EN and DA options (default: EN)
-- [ ] Generated Prompt Contracts respect `promptLanguage` — prose in selected language, headers always English
-- [ ] Language architecture supports future additions (type uses string union, UI uses select dropdown)
-- [ ] Each saved prompt stores the language it was generated in (`prompts.language` column)
-- [ ] `cpm generate` respects the profile's `promptLanguage` setting
+- [x] API routes returnerer rent JSON (CLI + web kompatibelt)
+- [x] `@cpm/db` queries bruges af både `@cpm/web` og `@cpm/cli` — ingen duplikering
+- [x] `@cpm/shared` services er platform-agnostisk (ingen Next.js imports)
+- [x] `@cpm/runner` loop engine er isoleret og importerer kun fra `@cpm/db` og `@cpm/shared`
+- [x] Alle cross-package imports bruger workspace aliases (@cpm/*)
+- [x] CLI installeres globalt via `cd packages/cli && pnpm link --global` og `cpm --help` virker
+- [x] `cpm generate "tekst"` genererer Prompt Contract i terminalen
+- [x] `cpm list` og `cpm show <id>` viser prompt-bank
+- [x] `cpm copy <id>` kopierer prompt til clipboard via pbcopy
+- [x] `cpm run <id> --dry-run` viser preview uden at starte cc
+- [x] runner_sessions tabel tracker CLI-executions
+- [x] "Launch in cc" knap på prompt detail page genererer korrekt cpm kommando
+- [x] Developer Profile includes `promptLanguage` selector with EN and DA options (default: EN)
+- [x] Generated Prompt Contracts respect `promptLanguage` — prose in selected language, headers always English
+- [x] Language architecture supports future additions (type uses string union, UI uses select dropdown)
+- [x] Each saved prompt stores the language it was generated in (`prompts.language` column)
+- [x] `cpm generate` respects the profile's `promptLanguage` setting
