@@ -17,7 +17,7 @@ export default async function PromptDetailPage({
   const tags = findTagsByPromptId(prompt.id).map((t) => t.tag);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="max-w-4xl animate-fade-in">
       <PromptDetailView
         id={prompt.id}
         title={prompt.title}

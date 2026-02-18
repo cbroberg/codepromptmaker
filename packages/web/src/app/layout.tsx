@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Providers } from '@/components/providers';
-import { Header } from '@/components/header';
 import { Toaster } from '@/components/ui/sonner';
+import { CookieConsent } from '@/components/cookie-consent';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -18,10 +18,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen antialiased">
         <Providers>
-          <Header />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
+          {children}
+          <CookieConsent />
           <Toaster />
         </Providers>
       </body>

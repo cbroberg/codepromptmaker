@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -170,7 +169,8 @@ export function PromptDetailView({
         </Link>
       </div>
 
-      <Card>
+      {/* Header card */}
+      <Card className="bg-card border-border">
         <CardHeader>
           <div className="space-y-3">
             <Input
@@ -191,13 +191,13 @@ export function PromptDetailView({
                   id="description"
                   value={editedDescription}
                   onChange={(e) => setEditedDescription(e.target.value)}
-                  className="min-h-[300px] resize-y text-sm"
+                  className="min-h-[300px] resize-y text-sm bg-muted border-border"
                 />
                 <Button
-                  variant="default"
                   size="sm"
                   onClick={handleRegenerate}
                   disabled={regenerating || !editedDescription.trim()}
+                  className="bg-indigo-500 text-white hover:bg-indigo-600"
                 >
                   <RefreshCw className={`mr-1 h-4 w-4 ${regenerating ? 'animate-spin' : ''}`} />
                   {regenerating ? 'Generating...' : 'Regenerate'}
@@ -212,22 +212,24 @@ export function PromptDetailView({
               <Button
                 variant="outline"
                 size="sm"
+                className="hover:border-indigo-500/50 transition-colors"
                 onClick={() => copyToClipboard(buildFullPrompt(), 'prompt')}
               >
                 {copied === 'prompt' ? (
-                  <Check className="mr-1 h-4 w-4" />
+                  <Check className="mr-1 h-4 w-4 text-indigo-500" />
                 ) : (
                   <Copy className="mr-1 h-4 w-4" />
                 )}
                 Copy Prompt
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
+                className="hover:border-indigo-500/50 transition-colors"
                 onClick={() => copyToClipboard(`cpm run ${id} --dir .`, 'cli')}
               >
                 {copied === 'cli' ? (
-                  <Check className="mr-1 h-4 w-4" />
+                  <Check className="mr-1 h-4 w-4 text-indigo-500" />
                 ) : (
                   <Terminal className="mr-1 h-4 w-4" />
                 )}
@@ -248,9 +250,12 @@ export function PromptDetailView({
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-2">
               {tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-md border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-500"
+                >
                   {tag}
-                </Badge>
+                </span>
               ))}
             </div>
           )}
@@ -265,7 +270,7 @@ export function PromptDetailView({
                 <Star
                   className={`h-5 w-5 ${
                     rating !== null && value <= rating
-                      ? 'fill-yellow-400 text-yellow-400'
+                      ? 'fill-amber-400 text-amber-400'
                       : 'text-muted-foreground/40'
                   }`}
                 />
@@ -273,57 +278,64 @@ export function PromptDetailView({
             ))}
           </div>
         </CardHeader>
-        <CardContent>
+      </Card>
+
+      {/* Contract sections card */}
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6">
           <Tabs defaultValue="goal">
             <TabsList className="w-full grid grid-cols-4">
-              <TabsTrigger value="goal">Goal</TabsTrigger>
-              <TabsTrigger value="constraints">Constraints</TabsTrigger>
-              <TabsTrigger value="format">Format</TabsTrigger>
-              <TabsTrigger value="failures">Failures</TabsTrigger>
+              <TabsTrigger value="goal" className="data-[state=active]:text-indigo-500">Goal</TabsTrigger>
+              <TabsTrigger value="constraints" className="data-[state=active]:text-indigo-500">Constraints</TabsTrigger>
+              <TabsTrigger value="format" className="data-[state=active]:text-indigo-500">Format</TabsTrigger>
+              <TabsTrigger value="failures" className="data-[state=active]:text-indigo-500">Failures</TabsTrigger>
             </TabsList>
             <TabsContent value="goal" className="mt-4">
               <Textarea
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
-                className="min-h-[400px] resize-y text-sm font-mono"
+                className="min-h-[400px] resize-y text-sm font-mono bg-muted border-border"
               />
             </TabsContent>
             <TabsContent value="constraints" className="mt-4">
               <Textarea
                 value={constraints}
                 onChange={(e) => setConstraints(e.target.value)}
-                className="min-h-[400px] resize-y text-sm font-mono"
+                className="min-h-[400px] resize-y text-sm font-mono bg-muted border-border"
               />
             </TabsContent>
             <TabsContent value="format" className="mt-4">
               <Textarea
                 value={format}
                 onChange={(e) => setFormat(e.target.value)}
-                className="min-h-[400px] resize-y text-sm font-mono"
+                className="min-h-[400px] resize-y text-sm font-mono bg-muted border-border"
               />
             </TabsContent>
             <TabsContent value="failures" className="mt-4">
               <Textarea
                 value={failureConditions}
                 onChange={(e) => setFailureConditions(e.target.value)}
-                className="min-h-[400px] resize-y text-sm font-mono"
+                className="min-h-[400px] resize-y text-sm font-mono bg-muted border-border"
               />
             </TabsContent>
           </Tabs>
+        </CardContent>
+      </Card>
 
-          <div className="mt-6 space-y-2">
-            <label htmlFor="notes" className="text-sm font-medium text-muted-foreground">
-              Notes
-            </label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              onBlur={handleNotesBlur}
-              placeholder="How did this prompt perform? Any observations..."
-              className="min-h-[100px] resize-y text-sm"
-            />
-          </div>
+      {/* Notes card */}
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <label htmlFor="notes" className="text-sm font-medium text-muted-foreground">
+            Notes
+          </label>
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={handleNotesBlur}
+            placeholder="How did this prompt perform? Any observations..."
+            className="min-h-[100px] resize-y text-sm bg-muted border-border"
+          />
         </CardContent>
       </Card>
     </div>

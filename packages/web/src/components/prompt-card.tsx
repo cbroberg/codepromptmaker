@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 interface PromptCardProps {
   id: string;
@@ -21,15 +20,22 @@ export function PromptCard({ id, title, description, tags, rating, createdAt }: 
 
   return (
     <Link href={`/prompts/${id}`}>
-      <Card className="transition-colors hover:border-foreground/20">
+      <Card className="bg-card border-border hover:border-indigo-500/30 transition-colors">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <CardTitle className="text-base line-clamp-1">{title}</CardTitle>
             <div className="flex items-center gap-2 ml-4 shrink-0">
               {rating != null && (
                 <span className="flex items-center gap-0.5">
-                  {Array.from({ length: rating }, (_, i) => (
-                    <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3 w-3 ${
+                        i < rating
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-muted-foreground/30'
+                      }`}
+                    />
                   ))}
                 </span>
               )}
@@ -42,9 +48,12 @@ export function PromptCard({ id, title, description, tags, rating, createdAt }: 
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-3">
               {tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-md border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-500"
+                >
                   {tag}
-                </Badge>
+                </span>
               ))}
             </div>
           )}

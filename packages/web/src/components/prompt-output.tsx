@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Check, Copy, Terminal } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -66,43 +65,48 @@ export function PromptOutput({
   }
 
   return (
-    <Card>
+    <Card className="border-border bg-card">
       <CardHeader>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <CardTitle className="text-lg">{title}</CardTitle>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <Button
               variant="outline"
               size="sm"
+              className="hover:border-indigo-500/50 transition-colors"
               onClick={() => copyToClipboard(buildFullPrompt(), 'prompt')}
             >
               {copied === 'prompt' ? (
-                <Check className="mr-1 h-4 w-4" />
+                <Check className="mr-1 h-4 w-4 text-indigo-500" />
               ) : (
                 <Copy className="mr-1 h-4 w-4" />
               )}
-              Copy Prompt
+              Copy
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
+              className="hover:border-indigo-500/50 transition-colors"
               onClick={() => copyToClipboard(`cpm run ${id} --dir .`, 'cli')}
             >
               {copied === 'cli' ? (
-                <Check className="mr-1 h-4 w-4" />
+                <Check className="mr-1 h-4 w-4 text-indigo-500" />
               ) : (
                 <Terminal className="mr-1 h-4 w-4" />
               )}
-              Copy CLI Command
+              CLI
             </Button>
           </div>
         </div>
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1 pt-2">
             {tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
+              <span
+                key={tag}
+                className="inline-flex items-center rounded-md border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-500"
+              >
                 {tag}
-              </Badge>
+              </span>
             ))}
           </div>
         )}
@@ -110,37 +114,37 @@ export function PromptOutput({
       <CardContent>
         <Tabs defaultValue="goal">
           <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="goal">Goal</TabsTrigger>
-            <TabsTrigger value="constraints">Constraints</TabsTrigger>
-            <TabsTrigger value="format">Format</TabsTrigger>
-            <TabsTrigger value="failures">Failures</TabsTrigger>
+            <TabsTrigger value="goal" className="data-[state=active]:text-indigo-500">Goal</TabsTrigger>
+            <TabsTrigger value="constraints" className="data-[state=active]:text-indigo-500">Constraints</TabsTrigger>
+            <TabsTrigger value="format" className="data-[state=active]:text-indigo-500">Format</TabsTrigger>
+            <TabsTrigger value="failures" className="data-[state=active]:text-indigo-500">Failures</TabsTrigger>
           </TabsList>
           <TabsContent value="goal" className="mt-4">
             <Textarea
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
-              className="min-h-[300px] resize-y text-sm font-mono"
+              className="min-h-[300px] resize-y text-sm font-mono bg-muted border-border"
             />
           </TabsContent>
           <TabsContent value="constraints" className="mt-4">
             <Textarea
               value={constraints}
               onChange={(e) => setConstraints(e.target.value)}
-              className="min-h-[300px] resize-y text-sm font-mono"
+              className="min-h-[300px] resize-y text-sm font-mono bg-muted border-border"
             />
           </TabsContent>
           <TabsContent value="format" className="mt-4">
             <Textarea
               value={format}
               onChange={(e) => setFormat(e.target.value)}
-              className="min-h-[300px] resize-y text-sm font-mono"
+              className="min-h-[300px] resize-y text-sm font-mono bg-muted border-border"
             />
           </TabsContent>
           <TabsContent value="failures" className="mt-4">
             <Textarea
               value={failureConditions}
               onChange={(e) => setFailureConditions(e.target.value)}
-              className="min-h-[300px] resize-y text-sm font-mono"
+              className="min-h-[300px] resize-y text-sm font-mono bg-muted border-border"
             />
           </TabsContent>
         </Tabs>

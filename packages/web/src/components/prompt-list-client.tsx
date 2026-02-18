@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PromptCard } from '@/components/prompt-card';
+import Link from 'next/link';
 
 interface PromptItem {
   id: string;
@@ -67,21 +67,24 @@ export function PromptListClient({ prompts, allTags }: PromptListClientProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search prompts..."
-          className="pl-9"
+          className="pl-9 bg-muted border-border focus-visible:ring-indigo-500/30"
         />
       </div>
 
       {allTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {allTags.map((tag) => (
-            <Badge
+            <button
               key={tag}
-              variant={selectedTags.has(tag) ? 'default' : 'outline'}
-              className="cursor-pointer select-none"
               onClick={() => toggleTag(tag)}
+              className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium transition-colors cursor-pointer select-none ${
+                selectedTags.has(tag)
+                  ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-500'
+                  : 'border-border bg-muted text-muted-foreground hover:text-foreground'
+              }`}
             >
               {tag}
-            </Badge>
+            </button>
           ))}
         </div>
       )}
@@ -99,11 +102,24 @@ export function PromptListClient({ prompts, allTags }: PromptListClientProps) {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-center text-muted-foreground py-12">
-          {hasFilters ? 'No prompts match your filters.' : 'No prompts yet. Generate your first Prompt Contract from the home page.'}
-        </p>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50 py-16 px-6">
+          <Sparkles className="h-10 w-10 text-muted-foreground/30 mb-4" />
+          <p className="text-muted-foreground text-center mb-4">
+            {hasFilters
+              ? 'No prompts match your filters.'
+              : 'No prompts yet. Generate your first Prompt Contract!'}
+          </p>
+          {!hasFilters && (
+            <Button asChild className="bg-indigo-500 text-white hover:bg-indigo-600">
+              <Link href="/generate">
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate
+              </Link>
+            </Button>
+          )}
+        </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filtered.map((prompt) => (
             <PromptCard
               key={prompt.id}

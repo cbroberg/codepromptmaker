@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRef } from 'react';
-import { Loader2, Download, Upload } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, Download, Upload, Save } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -69,7 +69,6 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
       }
     };
     reader.readAsText(file);
-    // Reset so the same file can be re-imported
     e.target.value = '';
   }
 
@@ -139,11 +138,8 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Developer Profile</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <Card className="max-w-2xl bg-card border-border">
+      <CardContent className="pt-6 space-y-6">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
           <Input
@@ -151,13 +147,14 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
             placeholder="Your name or project name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className="bg-muted border-border focus-visible:ring-indigo-500/30"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="language">Prompt Language</Label>
           <Select value={promptLanguage} onValueChange={setPromptLanguage}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-muted border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -203,23 +200,30 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
           onChange={handleImportFile}
         />
         <div className="flex gap-3">
-          <Button onClick={handleSave} disabled={saving} className="flex-1">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+          >
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (
-              'Save Profile'
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Profile
+              </>
             )}
           </Button>
-          <Button variant="outline" onClick={handleExportMarkdown}>
+          <Button variant="outline" onClick={handleExportMarkdown} className="hover:border-indigo-500/50 transition-colors">
             <Download className="mr-2 h-4 w-4" />
-            Export .md
+            Export
           </Button>
-          <Button variant="outline" onClick={handleImportClick}>
+          <Button variant="outline" onClick={handleImportClick} className="hover:border-indigo-500/50 transition-colors">
             <Upload className="mr-2 h-4 w-4" />
-            Import .md
+            Import
           </Button>
         </div>
       </CardContent>
@@ -230,20 +234,17 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
 function parseProfileMarkdown(text: string) {
   const lines = text.split('\n');
 
-  // Extract name from heading: "# Developer Profile — Name"
   const headingLine = lines.find((l) => l.startsWith('# '));
   const name = headingLine
     ? headingLine.replace(/^#\s+Developer Profile\s*[-—]\s*/, '').replace(/^#\s+/, '').trim()
     : 'Imported Profile';
 
-  // Extract language from "**Prompt Language:** English" or "Danish"
   const langLine = lines.find((l) => l.includes('Prompt Language'));
   let promptLanguage = 'en';
   if (langLine && /danish|dansk/i.test(langLine)) {
     promptLanguage = 'da';
   }
 
-  // Parse sections by heading
   function parseSection(heading: string): string[] {
     const idx = lines.findIndex((l) => l.trim().toLowerCase().startsWith(`## ${heading.toLowerCase()}`));
     if (idx === -1) return [];

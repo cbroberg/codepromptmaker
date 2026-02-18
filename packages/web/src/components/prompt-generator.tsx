@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { PromptOutput } from '@/components/prompt-output';
 import { SimilarPromptsPanel } from '@/components/similar-prompts-panel';
 import { toast } from 'sonner';
@@ -92,8 +91,9 @@ export function PromptGenerator({ profileId }: PromptGeneratorProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
+    <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+      {/* Input column */}
+      <div className="space-y-4 rounded-lg border border-border bg-card p-6">
         <div className="space-y-2">
           <Label htmlFor="description">What do you want to build?</Label>
           <Textarea
@@ -101,8 +101,8 @@ export function PromptGenerator({ profileId }: PromptGeneratorProps) {
             placeholder="Describe the task you want Claude Code to accomplish..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={5}
-            className="resize-none"
+            rows={8}
+            className="resize-none bg-muted border-border focus-visible:ring-indigo-500/30"
           />
         </div>
 
@@ -115,6 +115,7 @@ export function PromptGenerator({ profileId }: PromptGeneratorProps) {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleTagKeyDown}
+              className="bg-muted border-border focus-visible:ring-indigo-500/30"
             />
             <Button type="button" variant="outline" onClick={addTag}>
               Add
@@ -123,50 +124,79 @@ export function PromptGenerator({ profileId }: PromptGeneratorProps) {
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {tags.map((tag) => (
-                <Badge
+                <span
                   key={tag}
-                  variant="secondary"
-                  className="cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-md border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-500 cursor-pointer transition-colors hover:bg-indigo-500/20"
                   onClick={() => removeTag(tag)}
                 >
                   {tag} &times;
-                </Badge>
+                </span>
               ))}
             </div>
           )}
         </div>
 
-        <Button onClick={handleGenerate} disabled={loading} className="w-full">
+        <Button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="w-full bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+        >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Generating...
             </>
           ) : (
-            'Generate Prompt Contract'
+            <>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate Prompt Contract
+            </>
           )}
         </Button>
       </div>
 
-      {result && (
-        <>
-          <PromptOutput
-            id={result.id}
-            title={result.title}
-            fullPrompt={result.fullPrompt}
-            goal={result.goal}
-            constraints={result.constraints}
-            format={result.format}
-            failureConditions={result.failureConditions}
-            tags={result.tags}
-            tokensUsed={result.tokensUsed}
-            model={result.model}
-          />
-          {result.similarPrompts && result.similarPrompts.length > 0 && (
-            <SimilarPromptsPanel similarPrompts={result.similarPrompts} />
-          )}
-        </>
-      )}
+      {/* Output column */}
+      <div className="space-y-6">
+        {loading && (
+          <div className="flex items-center justify-center rounded-lg border border-border bg-card p-12">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+              <p className="text-sm text-muted-foreground">Generating your Prompt Contract...</p>
+            </div>
+          </div>
+        )}
+
+        {result && (
+          <>
+            <PromptOutput
+              id={result.id}
+              title={result.title}
+              fullPrompt={result.fullPrompt}
+              goal={result.goal}
+              constraints={result.constraints}
+              format={result.format}
+              failureConditions={result.failureConditions}
+              tags={result.tags}
+              tokensUsed={result.tokensUsed}
+              model={result.model}
+            />
+            {result.similarPrompts && result.similarPrompts.length > 0 && (
+              <SimilarPromptsPanel similarPrompts={result.similarPrompts} />
+            )}
+          </>
+        )}
+
+        {!loading && !result && (
+          <div className="flex items-center justify-center rounded-lg border border-dashed border-border bg-card/50 p-12">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <Sparkles className="h-8 w-8 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">
+                Your generated Prompt Contract will appear here.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -336,3 +336,9 @@ Current endpoints (v1):
 - Next.js imports in CLI or runner packages
 - API-heavy solutions when Max plan suffices
 - `Bash(rm -rf:*)` or `Bash(sudo:*)` in runner tool whitelist
+
+---
+
+## TODO / Pending Pages
+
+- **Privacy pages**: The cookie consent banner links to `/privacy`, `/privacy/essential`, and `/privacy/analytics`. These pages need to be created with actual privacy policy content, cookie explanations, and GDPR-compliant disclosures.
