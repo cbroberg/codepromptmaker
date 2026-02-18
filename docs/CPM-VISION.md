@@ -67,7 +67,7 @@ LangGraph is the engine. CrewAI is the gearbox. Claude Code is the hands. CPM is
 - Accessibility requirements (WCAG 2.1 AA baseline)
 - Mobile-first responsive breakpoint strategy
 
-**Output:** A complete Design Specification — ready for visual implementation or handoff to v0.dev.
+**Output:** A complete Design Specification — ready for visual implementation or handoff to CLAUDE or v0.dev or others.CLAUDE is preffered. 
 
 ---
 
