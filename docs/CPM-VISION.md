@@ -49,7 +49,7 @@ LangGraph is the engine. CrewAI is the gearbox. Claude Code is the hands. CPM is
 - ICP (Ideal Customer Profile) definition
 - Unique value proposition articulation
 - Monetization model recommendation (freemium, subscription, usage-based, enterprise)
-- Product naming and domain availability check
+- Product naming and domain availability check through paid API
 
 **Output:** A structured Product Brief — the single source of truth for all subsequent stages.
 
@@ -61,7 +61,7 @@ LangGraph is the engine. CrewAI is the gearbox. Claude Code is the hands. CPM is
 **CPM orchestrates:**
 - User story mapping (Jobs-to-be-Done framework)
 - Information architecture and sitemap generation
-- Wireframe specifications (structured Prompt Contracts for v0.dev or Figma AI)
+- Wireframe specifications (structured Prompt Contracts for CLAUDE or v0.dev or Figma AI or Gemini AI)
 - Design system selection and customization guidelines
 - UI component inventory
 - Accessibility requirements (WCAG 2.1 AA baseline)
