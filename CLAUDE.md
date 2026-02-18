@@ -240,10 +240,12 @@ const mode = existsSync(CONFIG_PATH) ? 'cloud' : 'local';
 
 ## Authentication
 
-- **v1:** No auth (single-user local app)
-- **v3:** Supabase Auth with GitHub/Google social login
-- `cpm login` uses device flow (OAuth-like, opens browser)
-- Auth token stored in `~/.cpm/config.json`
+- **v1:** No auth (single-user local app, userId = `'local'`)
+- **v3:** NextAuth.js v5 with GitHub/Google OAuth, DrizzleAdapter, database sessions (SQLite)
+- **Mode detection:** `AUTH_SECRET` env var present = auth mode; absent or `CPM_LOCAL=1` = local mode
+- **Web flow:** Standard OAuth redirect (NextAuth handles it)
+- **CLI flow (future):** `cpm login` will use GitHub Device Flow — **do NOT enable** "Device Flow" on the GitHub OAuth App until this is implemented
+- Auth token stored in `~/.cpm/config.json` (CLI, future)
 
 ---
 

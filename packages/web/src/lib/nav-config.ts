@@ -1,4 +1,4 @@
-import { Sparkles, FileText, UserCog } from 'lucide-react';
+import { LayoutDashboard, Sparkles, FileText, UserCog, Settings } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface NavItem {
@@ -13,6 +13,12 @@ export interface NavGroup {
 }
 
 export const navGroups: NavGroup[] = [
+  {
+    label: 'Overview',
+    items: [
+      { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    ],
+  },
   {
     label: 'Create',
     items: [
@@ -29,6 +35,7 @@ export const navGroups: NavGroup[] = [
     label: 'Settings',
     items: [
       { title: 'Developer Profile', href: '/profile', icon: UserCog },
+      { title: 'Settings', href: '/settings', icon: Settings },
     ],
   },
 ];

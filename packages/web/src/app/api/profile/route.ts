@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getFirstProfile, insertProfile, updateProfile, findProfileById } from '@cpm/db';
+import { getProfileByUserId, insertProfile, updateProfile, findProfileById } from '@cpm/db';
 import { buildNewProfile } from '@cpm/shared';
 import { nowISO } from '@cpm/shared';
 import { updateProfileSchema } from '@/lib/validations';
+import { getUserId } from '@/lib/get-user-id';
 
 export async function GET() {
   try {
-    const profile = getFirstProfile();
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const profile = getProfileByUserId(userId);
     return NextResponse.json(profile ?? null);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -16,6 +20,9 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await request.json();
     const parsed = updateProfileSchema.safeParse(body);
 
@@ -26,7 +33,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const existing = getFirstProfile();
+    const existing = getProfileByUserId(userId);
 
     if (existing) {
       updateProfile(existing.id, {
@@ -37,8 +44,8 @@ export async function PUT(request: Request) {
         defaultFailureConditions: parsed.data.defaultFailureConditions ?? [],
         promptLanguage: parsed.data.promptLanguage ?? 'en',
         updatedAt: nowISO(),
-      });
-      const updated = findProfileById(existing.id);
+      }, userId);
+      const updated = findProfileById(existing.id, userId);
       return NextResponse.json(updated);
     } else {
       const newProfile = buildNewProfile({
@@ -51,6 +58,7 @@ export async function PUT(request: Request) {
       });
       insertProfile({
         id: newProfile.id,
+        userId,
         name: newProfile.name,
         stack: newProfile.stack,
         hardRules: newProfile.hardRules,

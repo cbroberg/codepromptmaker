@@ -17,10 +17,14 @@ import {
   updatePromptEmbedding,
 } from '@cpm/db';
 import { generatePromptSchema } from '@/lib/validations';
+import { getUserId } from '@/lib/get-user-id';
 import type { DeveloperProfile } from '@cpm/shared';
 
 export async function POST(request: Request) {
   try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await request.json();
     const parsed = generatePromptSchema.safeParse(body);
 
@@ -35,7 +39,7 @@ export async function POST(request: Request) {
 
     let profile: DeveloperProfile | undefined;
     if (profileId) {
-      const row = findProfileById(profileId);
+      const row = findProfileById(profileId, userId);
       if (row) {
         profile = row as DeveloperProfile;
       }
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
       const provider = getEmbeddingProvider();
       const queryEmbedding = await provider.embed(description);
 
-      const allEmbeddings = findAllPromptsWithEmbeddings();
+      const allEmbeddings = findAllPromptsWithEmbeddings(userId);
       const candidates = allEmbeddings
         .filter((row) => row.embedding != null)
         .map((row) => ({
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
 
         if (similarPrompts.length > 0) {
           const similarIds = similarPrompts.map((sp) => sp.promptId);
-          const fullPrompts = findPromptsByIds(similarIds);
+          const fullPrompts = findPromptsByIds(similarIds, userId);
           examples = similarPrompts
             .map((sp) => {
               const prompt = fullPrompts.find((p) => p.id === sp.promptId);
@@ -91,6 +95,7 @@ export async function POST(request: Request) {
     insertPromptWithTags(
       {
         id,
+        userId,
         title: result.title,
         description: result.description,
         goal: result.goal,
@@ -111,7 +116,7 @@ export async function POST(request: Request) {
       const provider = getEmbeddingProvider();
       const richText = buildEmbeddingText(result.description, result.fullPrompt);
       const embedding = await provider.embed(richText);
-      updatePromptEmbedding(id, vectorToBuffer(embedding.vector));
+      updatePromptEmbedding(id, vectorToBuffer(embedding.vector), userId);
     } catch (embeddingError) {
       console.error('Failed to store embedding for prompt:', embeddingError);
     }

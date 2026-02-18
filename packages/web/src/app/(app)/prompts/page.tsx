@@ -3,11 +3,15 @@ import { SemanticSearch } from '@/components/semantic-search';
 import { BackfillBanner } from '@/components/backfill-banner';
 import { PromptListClient } from '@/components/prompt-list-client';
 import { Separator } from '@/components/ui/separator';
+import { getUserId } from '@/lib/get-user-id';
 
-export default function PromptsPage() {
-	const allPrompts = findAllPrompts();
-	const unembeddedCount = findPromptsWithoutEmbeddings().length;
-	const allTags = findAllDistinctTags();
+export const dynamic = 'force-dynamic';
+
+export default async function PromptsPage() {
+	const userId = (await getUserId()) ?? 'local';
+	const allPrompts = findAllPrompts(userId);
+	const unembeddedCount = findPromptsWithoutEmbeddings(userId).length;
+	const allTags = findAllDistinctTags(userId);
 
 	const promptsWithTags = allPrompts.map(({ embedding: _embedding, ...prompt }) => {
 		const tags = findTagsByPromptId(prompt.id).map((t) => t.tag);

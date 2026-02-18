@@ -59,41 +59,41 @@ function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border/60 h-16 flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex justify-between items-center">
         {/* Logo — Gemini style (Code2 icon + text) */}
-        <Link href="/" className="flex items-center gap-2">
+        <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white">
             <Code2 size={20} strokeWidth={2.5} />
           </div>
           <span className="font-bold text-lg tracking-tight text-foreground">CodePromptMaker</span>
-        </Link>
+        </a>
 
         {/* Desktop nav links — Gemini hover (indigo) */}
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-muted-foreground">
           <a href="#features" className="hover:text-indigo-500 transition-colors">Features</a>
           <a href="#pricing" className="hover:text-indigo-500 transition-colors">Pricing</a>
           <a href="#docs" className="hover:text-indigo-500 transition-colors">Docs</a>
-          <Link href="/generate" className="hover:text-indigo-500 transition-colors">Generate</Link>
-          <a href="#github" className="hover:text-indigo-500 transition-colors inline-flex items-center gap-1">
+          <Link href="/dashboard" className="hover:text-indigo-500 transition-colors">Generate</Link>
+          <a href="https://github.com/cbroberg/codepromptmaker" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-500 transition-colors inline-flex items-center gap-1">
             <Github className="w-4 h-4" />
             GitHub
           </a>
         </div>
 
-        {/* Desktop CTA — Figma buttons (Star on GitHub + Sign Up Free) */}
+        {/* Desktop CTA — Sign in + Start your project */}
         <div className="hidden md:flex items-center gap-3">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="border-border text-foreground hover:text-indigo-500 hover:border-indigo-500/30"
+            className="text-foreground"
+            asChild
           >
-            <Star className="w-4 h-4 mr-1" />
-            Star on GitHub
+            <Link href="/auth/signin">Sign in</Link>
           </Button>
           <Button
             size="sm"
             className="bg-indigo-500 hover:bg-indigo-600 text-white shadow-sm hover:shadow-indigo-200"
             asChild
           >
-            <Link href="/generate">Sign Up Free</Link>
+            <Link href="/dashboard">Start your project</Link>
           </Button>
         </div>
 
@@ -109,13 +109,13 @@ function Navbar() {
           <a href="#features" className="text-muted-foreground font-medium">Features</a>
           <a href="#pricing" className="text-muted-foreground font-medium">Pricing</a>
           <a href="#docs" className="text-muted-foreground font-medium">Docs</a>
-          <Link href="/generate" className="text-muted-foreground font-medium">Generate</Link>
+          <Link href="/dashboard" className="text-muted-foreground font-medium">Generate</Link>
           <div className="h-px bg-muted w-full" />
-          <a href="#" className="flex items-center justify-center gap-2 w-full border border-border py-2 rounded-lg font-medium text-foreground">
-            <Github size={16} /> Star on GitHub
-          </a>
-          <Link href="/generate" className="w-full bg-indigo-500 text-white py-2 rounded-lg font-medium text-center block">
-            Sign Up Free
+          <Link href="/auth/signin" className="flex items-center justify-center w-full border border-border py-2 rounded-lg font-medium text-foreground">
+            Sign in
+          </Link>
+          <Link href="/dashboard" className="w-full bg-indigo-500 text-white py-2 rounded-lg font-medium text-center block">
+            Start your project
           </Link>
         </div>
       )}
@@ -164,8 +164,8 @@ function HeroSection() {
               className="bg-indigo-500 hover:bg-indigo-600 text-white text-lg px-8 py-6 shadow-lg shadow-indigo-200 hover:-translate-y-0.5 transition-all dark:shadow-indigo-500/20"
               asChild
             >
-              <Link href="/generate">
-                Try Free — 25 prompts included
+              <Link href="/dashboard">
+                Start your project
                 <Zap className="w-5 h-5 ml-2" />
               </Link>
             </Button>
@@ -173,9 +173,12 @@ function HeroSection() {
               variant="outline"
               size="lg"
               className="border-border text-foreground text-lg px-8 py-6"
+              asChild
             >
-              <Github className="w-5 h-5 mr-2" />
-              View on GitHub
+              <a href="https://github.com/cbroberg/codepromptmaker" target="_blank" rel="noopener noreferrer">
+                <Github className="w-5 h-5 mr-2" />
+                View on GitHub
+              </a>
             </Button>
           </div>
 
@@ -699,7 +702,7 @@ function OpenSourceSection() {
                 <CardDescription>
                   Managed hosting, automatic updates, team features, and cloud sync
                 </CardDescription>
-                <Link href="/generate" className="text-xs font-bold text-indigo-500 flex items-center gap-1 mt-3 hover:text-indigo-600 transition-colors">
+                <Link href="/dashboard" className="text-xs font-bold text-indigo-500 flex items-center gap-1 mt-3 hover:text-indigo-600 transition-colors">
                   Get Started <Zap size={12} />
                 </Link>
               </CardHeader>
@@ -723,13 +726,15 @@ function OpenSourceSection() {
           </div>
 
           <div className="mt-12 text-center">
-            <Button size="lg" variant="outline" className="border-border">
-              <Github className="w-5 h-5 mr-2" />
-              View on GitHub
-              <Badge className="ml-2 bg-muted text-foreground">
-                <Star className="w-3 h-3 mr-1 fill-amber-500 text-amber-500" />
-                1.2k
-              </Badge>
+            <Button size="lg" variant="outline" className="border-border" asChild>
+              <a href="https://github.com/cbroberg/codepromptmaker" target="_blank" rel="noopener noreferrer">
+                <Github className="w-5 h-5 mr-2" />
+                View on GitHub
+                <Badge className="ml-2 bg-muted text-foreground">
+                  <Star className="w-3 h-3 mr-1 fill-amber-500 text-amber-500" />
+                  1.2k
+                </Badge>
+              </a>
             </Button>
           </div>
         </div>
@@ -786,7 +791,7 @@ function PricingSection() {
                   </li>
                 </ul>
                 <Button variant="outline" className="w-full border-border" asChild>
-                  <Link href="/generate">Start Free</Link>
+                  <Link href="/dashboard">Start Free</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -866,9 +871,11 @@ function PricingSection() {
                     <span className="text-sm text-muted-foreground">Docker support</span>
                   </li>
                 </ul>
-                <Button variant="outline" className="w-full border-border">
-                  <Github className="w-4 h-4 mr-2" />
-                  View Docs
+                <Button variant="outline" className="w-full border-border" asChild>
+                  <a href="https://github.com/cbroberg/codepromptmaker" target="_blank" rel="noopener noreferrer">
+                    <Github className="w-4 h-4 mr-2" />
+                    View Docs
+                  </a>
                 </Button>
               </CardContent>
             </Card>
@@ -916,7 +923,7 @@ function FooterSection() {
               <li><a href="#" className="hover:text-indigo-500 transition-colors">Privacy</a></li>
               <li><a href="#" className="hover:text-indigo-500 transition-colors">Terms</a></li>
               <li><a href="#" className="hover:text-indigo-500 transition-colors">Twitter</a></li>
-              <li><a href="#github" className="hover:text-indigo-500 transition-colors">GitHub</a></li>
+              <li><a href="https://github.com/cbroberg/codepromptmaker" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-500 transition-colors">GitHub</a></li>
             </ul>
           </div>
         </div>
@@ -924,7 +931,7 @@ function FooterSection() {
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
           <p>&copy; 2026 CodePromptMaker. All rights reserved. Open source under MIT License.</p>
           <div className="flex items-center gap-4">
-            <span>Built with &lt;3 in Aalborg, Denmark by Christian Broberg & Claude</span>
+            <span>Built with ❤️ in Aalborg, Denmark by Christian Broberg & Claude</span>
           </div>
         </div>
       </div>

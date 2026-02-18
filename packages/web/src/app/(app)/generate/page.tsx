@@ -1,8 +1,12 @@
-import { getFirstProfile } from '@cpm/db';
+import { getProfileByUserId } from '@cpm/db';
 import { PromptGenerator } from '@/components/prompt-generator';
+import { getUserId } from '@/lib/get-user-id';
 
-export default function HomePage() {
-  const profile = getFirstProfile();
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const userId = (await getUserId()) ?? 'local';
+  const profile = getProfileByUserId(userId);
 
   return (
     <div className="max-w-5xl animate-fade-in">

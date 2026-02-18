@@ -54,10 +54,93 @@ sqlite.exec(`
     completed_at TEXT,
     error TEXT
   );
+
+  -- Auth.js tables
+  CREATE TABLE IF NOT EXISTS user (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    email TEXT UNIQUE,
+    emailVerified INTEGER,
+    image TEXT,
+    plan TEXT NOT NULL DEFAULT 'free'
+  );
+
+  CREATE TABLE IF NOT EXISTS account (
+    userId TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    providerAccountId TEXT NOT NULL,
+    refresh_token TEXT,
+    access_token TEXT,
+    expires_at INTEGER,
+    token_type TEXT,
+    scope TEXT,
+    id_token TEXT,
+    session_state TEXT,
+    PRIMARY KEY (provider, providerAccountId)
+  );
+
+  CREATE TABLE IF NOT EXISTS session (
+    sessionToken TEXT PRIMARY KEY,
+    userId TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    expires INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS verificationToken (
+    identifier TEXT NOT NULL,
+    token TEXT NOT NULL,
+    expires INTEGER NOT NULL,
+    PRIMARY KEY (identifier, token)
+  );
+
+  -- CPM: API Tokens
+  CREATE TABLE IF NOT EXISTS api_tokens (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    last_used_at TEXT,
+    expires_at TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  -- CPM: Organizations
+  CREATE TABLE IF NOT EXISTS organizations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    plan TEXT NOT NULL DEFAULT 'free',
+    is_personal INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS organization_members (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    role TEXT NOT NULL DEFAULT 'member',
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    description TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 // Migrations for columns added after initial schema
 try { sqlite.exec('ALTER TABLE prompts ADD COLUMN rating INTEGER'); } catch { /* column exists */ }
 try { sqlite.exec('ALTER TABLE prompts ADD COLUMN notes TEXT'); } catch { /* column exists */ }
+
+// v3 migrations: add user_id to existing tables
+try { sqlite.exec("ALTER TABLE developer_profiles ADD COLUMN user_id TEXT NOT NULL DEFAULT 'local'"); } catch { /* column exists */ }
+try { sqlite.exec("ALTER TABLE prompts ADD COLUMN user_id TEXT NOT NULL DEFAULT 'local'"); } catch { /* column exists */ }
+try { sqlite.exec("ALTER TABLE runner_sessions ADD COLUMN user_id TEXT NOT NULL DEFAULT 'local'"); } catch { /* column exists */ }
 
 export const db = drizzle(sqlite, { schema });

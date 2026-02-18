@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/sonner';
 import { CookieConsent } from '@/components/cookie-consent';
+import { isAuthEnabled } from '@/lib/auth-mode';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen antialiased">
-        <Providers>
+        <Providers authEnabled={isAuthEnabled()}>
           {children}
           <CookieConsent />
           <Toaster />

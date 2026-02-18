@@ -3,7 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { UserNav } from '@/components/user-nav';
+import { OrgSwitcher } from '@/components/org-switcher';
 import { getPageTitle } from '@/lib/nav-config';
 
 function Crosshair({ className }: { className?: string }) {
@@ -32,8 +33,9 @@ export function AppHeader() {
           <h1 className="text-sm font-semibold leading-none truncate">{title}</h1>
         )}
       </div>
-      <div className="px-4">
-        <ThemeToggle />
+      <div className="flex items-center gap-2 px-4">
+        <OrgSwitcher />
+        <UserNav />
       </div>
     </header>
   );

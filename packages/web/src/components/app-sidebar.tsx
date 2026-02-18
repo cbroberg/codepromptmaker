@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { Code2, Sparkles, FileText, UserCog } from 'lucide-react';
+import { Code2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { navGroups } from '@/lib/nav-config';
 import {
 	Sidebar,
 	SidebarContent,
@@ -16,21 +17,6 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from '@/components/ui/sidebar';
-
-const navGroups = [
-	{
-		label: 'Create',
-		items: [{ title: 'Generate', href: '/generate', icon: Sparkles }],
-	},
-	{
-		label: 'Library',
-		items: [{ title: 'Prompts', href: '/prompts', icon: FileText }],
-	},
-	{
-		label: 'Settings',
-		items: [{ title: 'Profile', href: '/profile', icon: UserCog }],
-	},
-];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const pathname = usePathname();

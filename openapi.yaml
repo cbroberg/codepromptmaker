@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CodePromptMaker API
   description: API for generating, managing, and retrieving Prompt Contracts for Claude Code.
-  version: 2.0.0
+  version: 3.0.0
   contact:
     name: CodePromptMaker
     url: https://codepromptmaker.com
@@ -12,6 +12,10 @@ servers:
     description: Local development
   - url: https://codepromptmaker.com
     description: Production
+
+security:
+  - bearerAuth: []
+  - sessionAuth: []
 
 paths:
   /api/generate:
@@ -41,6 +45,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           description: Server error (e.g. missing API key, Claude API failure)
           content:
@@ -51,7 +57,7 @@ paths:
   /api/prompts:
     get:
       summary: List all prompts
-      description: Returns all saved Prompt Contracts ordered by creation date (newest first), with tags.
+      description: Returns all saved Prompt Contracts ordered by creation date (newest first), with tags. Scoped to the authenticated user.
       operationId: listPrompts
       responses:
         '200':
@@ -62,6 +68,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PromptWithTags'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           description: Server error
           content:
@@ -72,7 +80,7 @@ paths:
   /api/prompts/{id}:
     get:
       summary: Get a prompt by ID
-      description: Returns a single Prompt Contract with its tags.
+      description: Returns a single Prompt Contract with its tags. Scoped to the authenticated user.
       operationId: getPromptById
       parameters:
         - name: id
@@ -88,6 +96,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PromptWithTags'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Prompt not found
           content:
@@ -130,6 +140,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Prompt not found
           content:
@@ -164,6 +176,8 @@ paths:
                   success:
                     type: boolean
                     example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Prompt not found
           content:
@@ -207,6 +221,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           description: Server error
           content:
@@ -228,6 +244,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BackfillResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           description: Server error
           content:
@@ -238,7 +256,7 @@ paths:
   /api/profile:
     get:
       summary: Get developer profile
-      description: Returns the current developer profile, or null if none exists.
+      description: Returns the current developer profile for the authenticated user, or null if none exists.
       operationId: getProfile
       responses:
         '200':
@@ -249,6 +267,8 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/DeveloperProfile'
                   - type: 'null'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           description: Server error
           content:
@@ -258,8 +278,7 @@ paths:
     put:
       summary: Create or update developer profile
       description: >
-        Creates a new profile if none exists, or updates the existing one.
-        Only one profile exists in v1 (single-user local app).
+        Creates a new profile if none exists for the authenticated user, or updates the existing one.
       operationId: upsertProfile
       requestBody:
         required: true
@@ -286,6 +305,104 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/settings/tokens:
+    get:
+      summary: List API tokens
+      description: Returns all API tokens for the authenticated user, with hashes masked.
+      operationId: listApiTokens
+      responses:
+        '200':
+          description: Array of token metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiTokenMetadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create an API token
+      description: >
+        Generates a new API token. The plaintext token is returned exactly once
+        in the response and is never stored.
+      operationId: createApiToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  description: Descriptive name for the token
+                  example: CLI access
+      responses:
+        '201':
+          description: Token created (plaintext returned once)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiTokenCreated'
+        '400':
+          description: Token name is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/settings/tokens/{id}:
+    delete:
+      summary: Delete an API token
+      description: Deletes an API token by ID. Scoped to the authenticated user.
+      operationId: deleteApiToken
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Token deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           description: Server error
           content:
@@ -318,6 +435,27 @@ paths:
                 $ref: '#/components/schemas/Error'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API token (cpm_...) for CLI and programmatic access
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: authjs.session-token
+      description: Browser session cookie (set by NextAuth.js)
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Unauthorized
+
   schemas:
     GeneratePromptInput:
       type: object
@@ -528,6 +666,42 @@ components:
         promptLanguage:
           type: string
           enum: [en, da]
+
+    ApiTokenMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ApiTokenCreated:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        token:
+          type: string
+          description: Plaintext API token (shown only once)
+          example: cpm_a1b2c3d4e5f6...
+        createdAt:
+          type: string
+          format: date-time
 
     SearchResult:
       type: object

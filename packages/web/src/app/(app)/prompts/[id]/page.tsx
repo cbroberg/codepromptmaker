@@ -1,14 +1,16 @@
 import { notFound } from 'next/navigation';
 import { findPromptById, findTagsByPromptId } from '@cpm/db';
 import { PromptDetailView } from '@/components/prompt-detail-view';
+import { getUserId } from '@/lib/get-user-id';
 
 export default async function PromptDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const userId = (await getUserId()) ?? 'local';
   const { id } = await params;
-  const prompt = findPromptById(id);
+  const prompt = findPromptById(id, userId);
 
   if (!prompt) {
     notFound();

@@ -9,9 +9,13 @@ import {
   findPromptsByIds,
   findTagsByPromptId,
 } from '@cpm/db';
+import { getUserId } from '@/lib/get-user-id';
 
 export async function GET(request: Request) {
   try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') ?? '';
 
@@ -25,7 +29,7 @@ export async function GET(request: Request) {
     const provider = getEmbeddingProvider();
     const queryEmbedding = await provider.embed(query);
 
-    const allEmbeddings = findAllPromptsWithEmbeddings();
+    const allEmbeddings = findAllPromptsWithEmbeddings(userId);
     const candidates = allEmbeddings
       .filter((row) => row.embedding != null)
       .map((row) => ({
@@ -44,7 +48,7 @@ export async function GET(request: Request) {
     }
 
     const ids = ranked.map((r) => r.promptId);
-    const promptRows = findPromptsByIds(ids);
+    const promptRows = findPromptsByIds(ids, userId);
 
     const results = ranked.map((r) => {
       const prompt = promptRows.find((p) => p.id === r.promptId);

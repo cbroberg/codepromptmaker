@@ -1,14 +1,18 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { findPromptById, findTagsByPromptId, deletePrompt, updatePromptTitle, updatePromptRating, updatePromptNotes } from '@cpm/db';
+import { getUserId } from '@/lib/get-user-id';
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { id } = await params;
-    const prompt = findPromptById(id);
+    const prompt = findPromptById(id, userId);
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
@@ -28,14 +32,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { id } = await params;
-    const prompt = findPromptById(id);
+    const prompt = findPromptById(id, userId);
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
     }
 
-    deletePrompt(id);
+    deletePrompt(id, userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -55,8 +62,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { id } = await params;
-    const prompt = findPromptById(id);
+    const prompt = findPromptById(id, userId);
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
@@ -73,16 +83,16 @@ export async function PATCH(
     }
 
     if (parsed.data.title !== undefined) {
-      updatePromptTitle(id, parsed.data.title);
+      updatePromptTitle(id, parsed.data.title, userId);
     }
     if (parsed.data.rating !== undefined) {
-      updatePromptRating(id, parsed.data.rating);
+      updatePromptRating(id, parsed.data.rating, userId);
     }
     if (parsed.data.notes !== undefined) {
-      updatePromptNotes(id, parsed.data.notes);
+      updatePromptNotes(id, parsed.data.notes, userId);
     }
 
-    const updated = findPromptById(id);
+    const updated = findPromptById(id, userId);
     const tags = findTagsByPromptId(id).map((t) => t.tag);
 
     return NextResponse.json({ ...updated, tags });
