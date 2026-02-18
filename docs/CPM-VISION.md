@@ -302,7 +302,7 @@ The big picture: where the industry is heading, why the bottleneck was always tr
 12. "Context window limits are not an AI problem. They're a system design problem. Native Tasks in Claude Code + a proper restart protocol = no lost work."
 13. "The AI Command Center I wish had existed 5 years ago: Plans → Prompt Contracts → Autonomous Execution → Session History → Launch Campaign. Building it now."
 14. "Multi-language prompt generation: section headers always in English (GOAL, CONSTRAINTS, FORMAT), prose in Danish or English. Consistency where it matters, flexibility where it doesn't."
-15. "The v0.dev → ChatGPT → Claude Code design pipeline: ideation in v0, visual refinement in ChatGPT, production implementation in cc. Each tool doing what it does best."
+15. "The CLAUDE/Figma/Gemini → ChatGPT → Claude Code design pipeline: ideation in v0, visual refinement in ChatGPT, production implementation in cc. Each tool doing what it does best."
 16. "Developer Profile in CPM: your stack, rules, patterns, and preferences — injected automatically into every Prompt Contract CONSTRAINTS section. No more repeating yourself."
 17. "Three autonomy levels for AI-assisted development: single (one session), supervised (pause between iterations), full (run to completion). Choose based on trust and task complexity."
 18. "Polling > WebSockets for lightweight job queues. 5-second intervals. Simple. Robust. Battery-friendly. The same pattern GitHub Actions uses for self-hosted runners."

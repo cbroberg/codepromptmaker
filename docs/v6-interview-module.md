@@ -48,8 +48,12 @@ Begge flows ender i den samme Whisper-service og det samme `Interview`-objekt i 
 ┌─────────────────────────────────────────────────────────┐
 │              whisper-service (separat Fly.io app)        │
 │                                                          │
-│  FastAPI + openai-whisper (medium model)                 │
-│  POST /transcribe → returnerer tekst + segmenter         │
+│  Trin 1: openai-whisper (medium model som default)       │
+│    → rå transkription med timestamps/segmenter           │
+│                                                          │
+│  Trin 2: Claude Haiku korrektur (~$0.001/kald, ~2 sek)  │
+│    → fejlhøringer rettes via udvikler-ordbog             │
+│    → returnerer korrigeret tekst + ændringslog           │
 │                                                          │
 │  Accepterede formater: .webm, .m4a, .mp3, .wav, .ogg    │
 │  ffmpeg håndterer konvertering internt                   │
@@ -187,109 +191,210 @@ openai-whisper==20240930
 python-multipart==0.0.9
 ffmpeg-python==0.2.0
 torch==2.3.1
+httpx==0.27.0
 ```
 
-### 5.3 `main.py` — FastAPI app
+### 5.3 `main.py` — FastAPI app (to-trins pipeline)
 
 ```python
 # whisper-service/main.py
+#
+# To-trins pipeline — baseret på testresultater fra cbroberg/openai-whisper-docker:
+#   Trin 1: Whisper medium → rå dansk transskription
+#   Trin 2: Claude Haiku → korrektur med udvikler-ordbog
+#
+# Konklusion fra tests: Whisper alene laver fejl som "tekstbil" og "mokke".
+# Haiku med ordbog fanger og retter dem præcist (~$0.001/kald, ~2 sek).
+# Ollama (lokal) er IKKE egnet til Fly.io — for tung (4-5 GB RAM, ingen GPU).
 
 import whisper
 import tempfile
 import os
 import time
+import httpx
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
 
-app = FastAPI(title="CPM Whisper Service", version="1.0.0")
+app = FastAPI(title="CPM Whisper Service", version="2.0.0")
 
-# Model loades ved startup — IKKE per request.
-# 'medium' er den rette balance for dansk: ~1.5GB RAM, god accuracy.
-# Skift til 'large-v3' for maksimal præcision (+1GB RAM, ~30% langsommere).
-print("Loading Whisper model...")
-model = whisper.load_model("medium")
-print(f"Whisper model loaded: {model.dims}")
+# Trin 1: Whisper model loades ved startup
+# 'medium' er testet og virker godt til dansk (~10 sek processing, god accuracy)
+# 'large-v3' er bedre men 2.88 GB download — for tungt til 4GB Fly.io maskine
+# Kan overrides med env var: WHISPER_MODEL=large-v3
+WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "medium")
+print(f"Loading Whisper model: {WHISPER_MODEL}...")
+model = whisper.load_model(WHISPER_MODEL)
+print(f"Whisper model loaded.")
+
+# Trin 2: Haiku API til korrektur
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 
 SUPPORTED_FORMATS = {'.webm', '.m4a', '.mp3', '.wav', '.ogg', '.mp4', '.caf'}
 
+def load_ordbog(ordbog_path: str) -> str:
+    """Læs udvikler-ordbogen — bruges i Haiku-prompten."""
+    if not os.path.exists(ordbog_path):
+        return ""
+    lines = []
+    with open(ordbog_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                lines.append(line)
+    return "\n".join(lines)
+
+# Ordbogen læses ved startup — sidder i /app/ordbog.txt (kopieres ind i Docker image)
+ORDBOG = load_ordbog("/app/ordbog.txt")
+
+async def haiku_correct(raw_text: str, language: str = "da") -> dict:
+    """
+    Trin 2: Send rå Whisper-tekst til Claude Haiku for korrektur.
+    Bruger ordbogen til at rette kendte dansk/engelsk developer-fejlhøringer.
+    Returnerer korrigeret tekst + liste af ændringer.
+    """
+    if not ANTHROPIC_API_KEY:
+        # Ingen API key — returner rå tekst uden korrektion
+        return {"corrected_text": raw_text, "changes": [], "correction_skipped": True}
+
+    dict_section = f"\nUDVIKLER-ORDBOG (brug til at rette kendte fejl):\n{ORDBOG}\n" if ORDBOG else ""
+
+    prompt = f"""Du er en dansk korrekturlæser af Whisper tale-til-tekst transkriptioner.
+
+Svar i PRÆCIS dette JSON-format og intet andet:
+{{
+  "corrected_text": "den fulde tekst med ALLE rettelser anvendt",
+  "changes": [
+    {{"from": "forkert ord", "to": "korrekt ord", "reason": "begrundelse"}}
+  ]
+}}
+
+REGLER:
+- Anvend ALLE rettelser i corrected_text — ingen fejl må stå urettet
+- Ret kun ord der tydeligt er fejltransskriberet (lyder ens men forkert ord)
+- Bevar talesprog, slang og uformelt sprog
+- Ændr IKKE sætningsstruktur eller tegnsætning
+- Brug UDVIKLER-ORDBOGEN til at genkende kendte fejlhøringer
+- Hvis intet skal rettes, returner changes som tom liste []
+{dict_section}
+TEKST:
+{raw_text}"""
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            ANTHROPIC_API_URL,
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 2048,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+        )
+
+    if response.status_code != 200:
+        # Korrektion fejlede — returner rå tekst i stedet for at fejle hele kaldet
+        return {"corrected_text": raw_text, "changes": [], "correction_error": response.text}
+
+    import json
+    result_text = response.json()["content"][0]["text"]
+    try:
+        return json.loads(result_text)
+    except json.JSONDecodeError:
+        return {"corrected_text": raw_text, "changes": [], "correction_error": "JSON parse failed"}
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": "medium"}
+    return {
+        "status": "ok",
+        "whisper_model": WHISPER_MODEL,
+        "haiku_correction": bool(ANTHROPIC_API_KEY),
+        "ordbog_entries": len(ORDBOG.splitlines()) if ORDBOG else 0,
+    }
+
 
 @app.post("/transcribe")
 async def transcribe(
     file: UploadFile = File(...),
     language: str = Form(default="da"),
-    prompt: str = Form(default=""),   # Valgfri: giv Whisper kontekst (fx navne, firmanavn)
+    prompt: str = Form(default=""),
+    skip_correction: bool = Form(default=False),
 ):
     """
-    Transkribér en lydfil til tekst.
-    
-    - file: Lydfil (.webm, .m4a, .mp3, .wav, .ogg)
-    - language: ISO 639-1 sprogkode (default: 'da' for dansk)
-    - prompt: Valgfri konteksttekst der hjælper Whisper med navne og fagtermer
-    
+    To-trins transskription:
+    1. Whisper → rå tekst + segmenter
+    2. Claude Haiku → korrektur med udvikler-ordbog
+
+    - file: Lydfil (.webm, .m4a, .mp3, .wav, .ogg) — .m4a fra iPhone Diktafon virker direkte
+    - language: ISO 639-1 ('da' for dansk)
+    - prompt: Valgfri kontekst til Whisper (navne, firmanavn)
+    - skip_correction: Spring Haiku-korrektion over (returner rå Whisper-output)
+
     Returnerer:
-    - text: Fuld transskription som én streng
-    - segments: Liste af {id, start, end, text} med timestamps
-    - language: Detekteret eller angivet sprog
+    - text: Korrigeret tekst (eller rå hvis korrektion slås fra)
+    - raw_text: Rå Whisper-output før korrektion
+    - changes: Liste af rettelser Haiku lavede
+    - segments: Whisper-segmenter med timestamps
     - duration: Varighed i sekunder
     """
-    
-    # Valider filformat via extension
     suffix = Path(file.filename or "audio.webm").suffix.lower()
     if suffix not in SUPPORTED_FORMATS:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Unsupported format: {suffix}. Supported: {SUPPORTED_FORMATS}"
-        )
-    
-    # Skriv til temp-fil — ffmpeg/Whisper kræver en rigtig fil, ikke en stream
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {suffix}")
+
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         content = await file.read()
         tmp.write(content)
         tmp_path = tmp.name
-    
+
     try:
         start_time = time.time()
-        
-        # Whisper-kald med dansk som default
-        result = model.transcribe(
+
+        # Trin 1: Whisper
+        whisper_result = model.transcribe(
             tmp_path,
-            language=language if language else None,  # None = auto-detect
+            language=language if language else None,
             initial_prompt=prompt or None,
             verbose=False,
-            fp16=False,                               # CPU-venlig (Fly.io har ikke GPU)
-            condition_on_previous_text=True,          # Bedre sammenhæng i lange optagelser
-            word_timestamps=False,                    # Segment-level er nok
+            fp16=False,
+            condition_on_previous_text=True,
         )
-        
-        elapsed = time.time() - start_time
-        
-        # Strukturér segmenter
+
+        raw_text = whisper_result["text"].strip()
         segments = [
-            {
-                "id": i,
-                "start": round(seg["start"], 2),
-                "end": round(seg["end"], 2),
-                "text": seg["text"].strip(),
-            }
-            for i, seg in enumerate(result["segments"])
+            {"id": i, "start": round(s["start"], 2), "end": round(s["end"], 2), "text": s["text"].strip()}
+            for i, s in enumerate(whisper_result["segments"])
         ]
-        
+        duration = round(whisper_result["segments"][-1]["end"], 1) if segments else 0
+        whisper_time = round(time.time() - start_time, 1)
+
+        # Trin 2: Haiku korrektion
+        correction = {"corrected_text": raw_text, "changes": []}
+        if not skip_correction:
+            correction = await haiku_correct(raw_text, language)
+        haiku_time = round(time.time() - start_time - whisper_time, 1)
+
         return JSONResponse({
-            "text": result["text"].strip(),
+            "text": correction.get("corrected_text", raw_text),  # Korrigeret tekst
+            "raw_text": raw_text,                                  # Rå Whisper-output
+            "changes": correction.get("changes", []),              # Haiku-rettelser
             "segments": segments,
-            "language": result["language"],
-            "duration": round(result["segments"][-1]["end"], 1) if segments else 0,
-            "processing_time_seconds": round(elapsed, 1),
-            "model": "medium",
+            "language": whisper_result["language"],
+            "duration": duration,
+            "whisper_model": WHISPER_MODEL,
+            "processing": {
+                "whisper_seconds": whisper_time,
+                "haiku_seconds": haiku_time if not skip_correction else 0,
+                "total_seconds": round(time.time() - start_time, 1),
+            }
         })
-        
+
     finally:
-        # Altid ryd op
         os.unlink(tmp_path)
 
 
@@ -304,8 +409,6 @@ if __name__ == "__main__":
 
 FROM python:3.11-slim
 
-# ffmpeg er påkrævet for Whisper's lydkonvertering
-# Den håndterer .webm, .m4a, .caf og alle andre formater automatisk
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
@@ -314,23 +417,24 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-# PyTorch CPU-only build — vi bruger ikke GPU på Fly.io
-# Dette reducerer image-størrelse markant (~800MB vs ~4GB med CUDA)
+# PyTorch CPU-only — ingen GPU på Fly.io, reducerer image markant
 RUN pip install --no-cache-dir torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download Whisper medium model ind i image ved build-tid.
-# Dette undgår download ved første request og reducerer cold-start til ~10 sek.
+# Pre-download Whisper medium model ved build-tid
+# Eliminerer download-ventetid ved container-start
+# large-v3 er bedre til dansk men 2.88 GB — for tungt til 4GB Fly.io maskine (testet)
 RUN python -c "import whisper; whisper.load_model('medium')"
 
+# Kopier ordbog og app
+# ordbog.txt migreres fra cbroberg/openai-whisper-docker og vedligeholdes her
+COPY ordbog.txt .
 COPY main.py .
 
 EXPOSE 8080
 
 CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
 ```
-
-**Bemærk:** `whisper.load_model('medium')` under `RUN` i Dockerfile pre-downloader og cacher modellen (~1.5GB) direkte i Docker-imaget. Det giver en større image-størrelse men eliminerer download-ventetid ved container-start.
 
 ### 5.5 `fly.toml`
 
@@ -345,35 +449,32 @@ primary_region = "arn"  # Stockholm — tættest på DK
 
 [env]
   PORT = "8080"
+  WHISPER_MODEL = "medium"   # Skift til "large-v3" hvis maskine opgraderes til 8GB
+
+# ANTHROPIC_API_KEY sættes som Fly secret (ikke i fly.toml):
+# fly secrets set ANTHROPIC_API_KEY=sk-ant-... -a cpm-whisper-service
 
 [http_service]
   internal_port = 8080
-  force_https = false                   # Intern trafik kun — ingen HTTPS nødvendig
+  force_https = false
 
-  # KRITISK: autostop sparer penge — stopper maskinen efter 5 min idle
   auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 0              # 0 = fuldstændig stop når ingen bruger det
+  min_machines_running = 0
 
   [http_service.concurrency]
     type = "requests"
-    hard_limit = 2                      # Max 2 samtidige transskriptioner
+    hard_limit = 2
     soft_limit = 1
 
-# VIGTIGT: Whisper medium + ffmpeg + torch kræver 4GB RAM minimum
-# performance-2x = 2 vCPU shared, 4GB RAM
-# Pris: ~$0.000490/sek = ca. $1.76/time — men kun betalt mens den kører
+# 4GB RAM kræves til Whisper medium + ffmpeg + torch + Haiku httpx calls
 [[vm]]
   size = "performance-2x"
   memory = "4gb"
 
-# Ingen public IP — kun tilgængelig via Fly private network (6PN)
-# cpm-whisper-service.internal på port 8080
 [[services]]
   internal_port = 8080
   protocol = "tcp"
-
-  # Ingen [[services.ports]] blok = ingen public exposure
 ```
 
 ### 5.6 Deploy kommandoer
@@ -381,19 +482,25 @@ primary_region = "arn"  # Stockholm — tættest på DK
 ```bash
 # Første gang
 cd whisper-service
+
+# Kopier ordbog fra test-repo (udgangspunkt)
+cp ../openai-whisper-docker/ordbog.txt .
+
 fly apps create cpm-whisper-service
+
+# KRITISK: Sæt Anthropic API key som secret (bruges til Haiku-korrektion)
+# Haiku koster ~$0.001/kald — meget billigt til denne use case
+fly secrets set ANTHROPIC_API_KEY=sk-ant-... -a cpm-whisper-service
+
 fly deploy
 
-# Tjek status
-fly status -a cpm-whisper-service
+# Tjek at begge trin virker
 fly logs -a cpm-whisper-service
-
-# Skaler ned til 0 manuelt (autostop gør det automatisk)
-fly scale count 0 -a cpm-whisper-service
-
-# Test internt fra CPM-app maskinen (SSH ind)
-fly ssh console -a cpm-whisper-svc
 curl http://cpm-whisper-service.internal:8080/health
+# → {"status":"ok","whisper_model":"medium","haiku_correction":true,"ordbog_entries":65}
+
+# Skalér ned manuelt (autostop gør det automatisk efter idle)
+fly scale count 0 -a cpm-whisper-service
 ```
 
 ### 5.7 Lokal udvikling uden Fly.io
@@ -775,7 +882,117 @@ export function AudioUploader({ onFileSelected }: AudioUploaderProps) {
 
 ---
 
-## 8. Interview → Plan Flow
+## 8. Udvikler-ordbog (CPM Ressource)
+
+### Baggrund
+
+Whisper fejlhører systematisk dansk/engelsk developer-jargon — ord som "mocke", "committe", "deploye" og "pipelinen" der ikke er i Whisper's træningsdata som dansk tekst. Tests i `cbroberg/openai-whisper-docker` dokumenterede 65+ sådanne fejlhøringer og viste at Haiku-korrektion med en ordbog løser problemet præcist.
+
+Ordbogen skal leve i CPM som en redigerbar ressource — ikke begraves i Docker-imaget.
+
+### Ordbog Data Model
+
+```typescript
+// packages/shared/types/ordbog.ts
+
+export interface OrdbogEntry {
+  id: string;
+  wrong: string;        // Whispers fejlhøring (fx "mokke")
+  correct: string;      // Korrekt form (fx "mocke")
+  explanation: string;  // Forklaring (fx "at lave mock/staffage i kode")
+  category: OrdbogCategory;
+  projectId: string | null;  // null = global, string = projekt-specifik
+  language: 'da' | 'en';
+  createdAt: Date;
+}
+
+export type OrdbogCategory = 
+  | 'git'
+  | 'kode'
+  | 'devops'
+  | 'agilt'
+  | 'generelt'
+  | 'forkortelser'
+  | 'custom';
+```
+
+### Ordbog Database Schema
+
+```typescript
+// packages/db/schema/ordbog.ts
+
+export const ordbog = sqliteTable('ordbog', {
+  id: text('id').primaryKey(),
+  wrong: text('wrong').notNull(),
+  correct: text('correct').notNull(),
+  explanation: text('explanation').notNull().default(''),
+  category: text('category').notNull().default('custom'),
+  projectId: text('project_id'),           // null = global
+  language: text('language').default('da'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).defaultNow(),
+});
+
+// Indeks til hurtig opslag
+CREATE INDEX idx_ordbog_project ON ordbog(project_id);
+CREATE INDEX idx_ordbog_category ON ordbog(category);
+```
+
+### Seed: Import fra `ordbog.txt`
+
+De 65 eksisterende opslag fra test-repo'et seedes ved første opstart:
+
+```typescript
+// packages/db/seeds/ordbog-seed.ts
+// Kør: pnpm --filter @cpm/db seed:ordbog
+
+// Importerer alle kategorier fra den testede ordbog:
+// git (13 opslag), kode (19), devops (12), agilt (8), generelt (11), forkortelser (6)
+```
+
+### API Route
+
+```typescript
+// packages/web/src/app/api/ordbog/route.ts
+
+// GET  /api/ordbog           → alle globale opslag
+// GET  /api/ordbog?project=x → globale + projekt-specifikke
+// POST /api/ordbog           → opret nyt opslag
+// DELETE /api/ordbog/[id]    → slet opslag
+```
+
+### Ordbog UI (`/settings/ordbog`)
+
+```
+Tabel med: Fejlhøring | Korrekt | Kategori | Projekt | Handlinger
+Filtrer på: kategori, projekt (global/projekt-specifik)
+Søg i: fejlhøring, korrekt, forklaring
+"Tilføj opslag" → inline form
+Import/Export: .txt format (kompatibelt med wt-check scripts)
+```
+
+### Ordbog → Whisper-service
+
+Ordbogen sendes dynamisk til whisper-servicen per request (ikke bagt ind i Docker-image):
+
+```typescript
+// I /api/interviews/transcribe/route.ts
+
+// Hent relevant ordbog (global + projekt-specifik)
+const entries = await db.select().from(ordbog)
+  .where(or(isNull(ordbog.projectId), eq(ordbog.projectId, projectId)));
+
+// Formattér til samme format som ordbog.txt
+const ordbogText = entries
+  .map(e => `${e.wrong} -> ${e.correct} (${e.explanation})`)
+  .join('\n');
+
+// Send med til whisper-service
+whisperForm.append('ordbog', ordbogText);
+```
+
+Dette betyder at ordbogen kan opdateres i CPM UI uden at gendeploye whisper-servicen.
+
+---
 
 ```typescript
 // packages/web/src/app/api/interviews/[id]/generate-plan/route.ts
@@ -939,25 +1156,29 @@ packages/
 
 ---
 
-## 12. Environment Variables
+## 13. Environment Variables
 
 ```bash
 # packages/web/.env.local
 
-# Whisper service URL
-# Lokal udvikling:
-WHISPER_SERVICE_URL=http://localhost:8080
-# Produktion (Fly.io private network):
-WHISPER_SERVICE_URL=http://cpm-whisper-service.internal:8080
+WHISPER_SERVICE_URL=http://localhost:8080          # Lokal dev
+# WHISPER_SERVICE_URL=http://cpm-whisper-service.internal:8080  # Fly.io prod
 
-# Maksimal filstørrelse for audio upload (bytes) — default 100MB
-MAX_AUDIO_SIZE_BYTES=104857600
+MAX_AUDIO_SIZE_BYTES=104857600   # 100MB
 ```
 
 ```bash
 # whisper-service/.env.example
-# Ingen secrets påkrævet — service er kun tilgængelig via Fly private net
 PORT=8080
+WHISPER_MODEL=medium             # medium (default) eller large-v3 (bedre, 8GB RAM)
+
+# Anthropic Haiku til korrektion — ~$0.001 per kald
+# Sættes som Fly.io secret i prod: fly secrets set ANTHROPIC_API_KEY=sk-ant-...
+# Lokalt: kopier til .env (gitignored)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Hvis ANTHROPIC_API_KEY mangler, returneres rå Whisper-tekst uden korrektion
+# (graceful degradation — servicen fejler ikke)
 ```
 
 ---
@@ -1009,23 +1230,24 @@ ALTER TABLE plans ADD COLUMN source_interview_id TEXT REFERENCES interviews(id);
 
 ---
 
-## 14. Estimeret implementation-tid
+## 15. Estimeret implementation-tid
 
 | Komponent | Estimat |
 |-----------|---------|
-| whisper-service: Dockerfile + FastAPI + fly.toml | 3-4 timer |
-| Fly.io deploy + test (inkl. debug) | 1-2 timer |
-| @cpm/db: interviews schema + Drizzle queries | 1 timer |
-| @cpm/shared: Interview types | 30 min |
+| whisper-service: Dockerfile + FastAPI (to-trins pipeline) + fly.toml | 3-4 timer |
+| Fly.io deploy + secrets + test | 1-2 timer |
+| @cpm/db: interviews schema + ordbog schema + seeds | 1-2 timer |
+| @cpm/shared: Interview + OrdbogEntry types | 30 min |
 | /api/interviews/* routes (list, transcribe, patch, plan-gen) | 3-4 timer |
-| AudioRecorder.tsx (browser optagelse) | 2-3 timer |
-| AudioUploader.tsx (m4a + fil-upload) | 1 timer |
-| TranscriptEditor.tsx (split-pane) | 3-4 timer |
+| /api/ordbog/* routes + seed import | 1-2 timer |
+| AudioRecorder.tsx + AudioUploader.tsx | 3 timer |
+| TranscriptEditor.tsx (split-pane med segment-playback) | 3-4 timer |
 | /interviews/new + /interviews/[id] sider | 2-3 timer |
+| /settings/ordbog UI (tabel + CRUD) | 2-3 timer |
 | Interview → Plan generation flow | 2 timer |
 | PWA manifest + Share Target | 1-2 timer |
 | CLI commands | 2 timer |
-| **Total** | **~1.5-2 arbejdsdage** |
+| **Total** | **~2-2.5 arbejdsdage** |
 
 ---
 
@@ -1045,12 +1267,14 @@ v6 er **additiv** — bryder ingen eksisterende funktionalitet.
 
 ## 16. Open Spørgsmål
 
-1. **Audio-lagring (v1):** Gemmes lydfiler lokalt på disk (simpelt) eller kastes væk efter transkription (sparer plads)? Anbefaling: gem i `~/.cpm/audio/` i v1, flyt til R2 i v3.
+1. **Whisper model på Fly.io:** `medium` er testet og virker til dansk (~10 sek). `large-v3` er bedre men 2.88 GB download og for tungt til 4GB maskine. Gør det konfigurerbart via `WHISPER_MODEL` env var — start med `medium`, opgrader til `large-v3` hvis maskinen opgraderes til 8GB.
 
-2. **Whisper model valg:** `medium` er god til dansk og kører på 4GB RAM. `large-v3` er bedre men kræver 8GB RAM og er ~2x langsommere. Start med `medium` — gør det konfigurerbart via env var (`WHISPER_MODEL=medium`).
+2. **Ordbog per projekt vs. global:** Implementér begge — global ordbog for generel developer-jargon (de 65 testede opslag), og projekt-specifik ordbog for kundenavne og domænetermer. Begge sendes samlet til whisper-servicen.
 
-3. **Segmenteret playback:** Klik på segment i editor → audio hopper til det tidspunkt. Kræver en `<audio>` element med `currentTime` manipulation. Inkludér fra dag ét — det er den primære redigerings-UX.
+3. **Haiku graceful degradation:** Servicen returnerer rå Whisper-tekst hvis `ANTHROPIC_API_KEY` mangler — den fejler aldrig pga. manglende korrektion. Vis i UI om korrektion var aktiv.
 
-4. **Fortrolighed:** Lydfiler fra kundeinterviews er følsomme. Overvej at tilbyde lokal Whisper-kørsel (direkte på brugerens maskine via `whisper.cpp`) som alternativ til cloud-service i v3 self-hosted setup.
+4. **Segmenteret playback:** Klik på segment i editor → audio hopper til det tidspunkt. Prioritér fra dag ét — det er den primære redigerings-UX der spare tid ved gennemgang.
 
-5. **Diktafon Share Sheet:** `share_target` i PWA manifest virker kun i Safari på iOS. Chrome på iOS understøtter det ikke. Dokumentér dette klart i UI.
+5. **Diktafon Share Sheet:** `share_target` i PWA manifest virker kun i Safari på iOS. Dokumentér dette klart i onboarding-teksten.
+
+6. **Audio-lagring:** Gem lydfiler i `~/.cpm/audio/` lokalt i v1 (simpelt). Flyt til Cloudflare R2 i v3 SaaS. Overvej om filer skal beholdes efter transskription eller slettes for at spare plads — gør det til en brugerindstilling.
