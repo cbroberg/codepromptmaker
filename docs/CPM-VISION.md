@@ -61,13 +61,13 @@ LangGraph is the engine. CrewAI is the gearbox. Claude Code is the hands. CPM is
 **CPM orchestrates:**
 - User story mapping (Jobs-to-be-Done framework)
 - Information architecture and sitemap generation
-- Wireframe specifications (structured Prompt Contracts for CLAUDE or v0.dev or Figma AI or Gemini AI)
+- Wireframe specifications (structured Prompt Contracts for CLAUDE, Figma AI or Gemini AI)
 - Design system selection and customization guidelines
 - UI component inventory
 - Accessibility requirements (WCAG 2.1 AA baseline)
 - Mobile-first responsive breakpoint strategy
 
-**Output:** A complete Design Specification — ready for visual implementation or handoff to CLAUDE or v0.dev or others.CLAUDE is preffered. 
+**Output:** A complete Design Specification — ready for visual implementation or handoff to CLAUDE or others. 
 
 ---
 
@@ -84,7 +84,7 @@ LangGraph is the engine. CrewAI is the gearbox. Claude Code is the hands. CPM is
 - Security threat model (OWASP Top 10 baseline)
 - Scalability and cost projection
 
-**Output:** A Technical Architecture Document + CLAUDE.md for the new project — ready for autonomous implementation.
+**Output:** A Technical Architecture Document + CLAUDE.md for the new project, and Claude agents and skills and and patterns and custom Actions needed — ready for autonomous implementation.
 
 ---
 
@@ -93,15 +93,16 @@ LangGraph is the engine. CrewAI is the gearbox. Claude Code is the hands. CPM is
 
 **CPM orchestrates:**
 - Monorepo scaffold with all packages initialized
-- Database migrations (Drizzle schema → migration files)
+- Database migrations (Drizzle schema → migration files or Supabase equivalent)
 - Authentication layer (Supabase Auth or equivalent)
 - Core business logic implementation
-- UI component library setup (shadcn/ui + Tailwind v4)
+- UI component library setup (shadcn/ui + Radix UI + Tailwind v4)
 - All application screens and flows
 - API routes with input validation (Zod)
 - Error handling and logging instrumentation
 - Unit and integration test suite generation
 - End-to-end test scenarios (Playwright)
+- Monitoring tools
 
 **Execution model:** Claude Code in headless mode (`claude -p`), iterating via the Ralph Wiggum Loop until completion markers are confirmed. Each iteration picks up from native Tasks — no state loss between context resets.
 
@@ -117,7 +118,7 @@ LangGraph is the engine. CrewAI is the gearbox. Claude Code is the hands. CPM is
 - CI/CD pipeline (GitHub Actions workflows)
 - Environment configuration (staging + production)
 - Database provisioning (Supabase project setup via API)
-- CDN and edge deployment configuration (Vercel / Cloudflare)
+- CDN and edge deployment configuration (Fly.io / Cloudflare)
 - DNS configuration instructions
 - SSL/TLS setup verification
 - Stripe product and pricing tier creation
