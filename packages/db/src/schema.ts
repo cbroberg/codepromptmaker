@@ -73,6 +73,7 @@ export const developerProfiles = sqliteTable('developer_profiles', {
 export const prompts = sqliteTable('prompts', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().default('local'),
+  projectId: text('project_id').references(() => projects.id, { onDelete: 'set null' }),
   title: text('title').notNull(),
   description: text('description').notNull(),
   goal: text('goal').notNull(),
@@ -137,6 +138,9 @@ export const projects = sqliteTable('projects', {
   name: text('name').notNull(),
   slug: text('slug').notNull(),
   description: text('description'),
+  machineSize: text('machine_size').notNull().default('free'),
+  region: text('region').notNull().default('iad'),
+  status: text('status').notNull().default('active'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });

@@ -89,8 +89,11 @@ function OrgSwitcherInner() {
   function handleSelect(org: Org) {
     setCurrentOrgId(org.id);
     setCookie('cpm-org', org.id);
+    // Clear project cookie when switching orgs
+    document.cookie = 'cpm-project=;path=/;max-age=0';
     window.dispatchEvent(new CustomEvent('cpm-org-change', { detail: org.id }));
-    router.push('/generate');
+    router.push('/dashboard');
+    router.refresh();
   }
 
   return (

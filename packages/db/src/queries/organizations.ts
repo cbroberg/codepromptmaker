@@ -1,6 +1,6 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '../connection';
-import { organizations, organizationMembers, projects } from '../schema';
+import { organizations, organizationMembers } from '../schema';
 
 // ─── Organizations ─────────────────────────────────────────────────────────
 
@@ -103,17 +103,3 @@ export function removeOrgMember(orgId: string, userId: string) {
     .run();
 }
 
-// ─── Projects (ready for future) ───────────────────────────────────────────
-
-export function findProjectsByOrgId(orgId: string) {
-  return db.select().from(projects).where(eq(projects.orgId, orgId)).all();
-}
-
-export function countProjectsByOrgId(orgId: string) {
-  const result = db
-    .select({ count: sql<number>`count(*)` })
-    .from(projects)
-    .where(eq(projects.orgId, orgId))
-    .get();
-  return result?.count ?? 0;
-}

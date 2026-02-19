@@ -61,6 +61,16 @@ export {
   findMembersByOrgId,
   findMemberByOrgAndUser,
   removeOrgMember,
+} from './queries/organizations';
+
+// Queries — projects
+export {
+  insertProject,
+  findProjectById,
+  findProjectBySlug,
+  updateProject,
+  deleteProject,
   findProjectsByOrgId,
   countProjectsByOrgId,
-} from './queries/organizations';
+  countPromptsByProjectId,
+} from './queries/projects';

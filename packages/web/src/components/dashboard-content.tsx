@@ -43,8 +43,11 @@ export function DashboardContent({ initialOrgs }: DashboardContentProps) {
 
   const enterOrg = useCallback((org: Org) => {
     setCookie('cpm-org', org.id);
+    // Clear any previously selected project when entering a new org
+    document.cookie = 'cpm-project=;path=/;max-age=0';
     window.dispatchEvent(new CustomEvent('cpm-org-change', { detail: org.id }));
-    router.push('/generate');
+    router.push('/dashboard');
+    router.refresh();
   }, [router]);
 
   const filtered = useMemo(() => {

@@ -129,6 +129,9 @@ sqlite.exec(`
     name TEXT NOT NULL,
     slug TEXT NOT NULL,
     description TEXT,
+    machine_size TEXT NOT NULL DEFAULT 'free',
+    region TEXT NOT NULL DEFAULT 'iad',
+    status TEXT NOT NULL DEFAULT 'active',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -137,6 +140,12 @@ sqlite.exec(`
 // Migrations for columns added after initial schema
 try { sqlite.exec('ALTER TABLE prompts ADD COLUMN rating INTEGER'); } catch { /* column exists */ }
 try { sqlite.exec('ALTER TABLE prompts ADD COLUMN notes TEXT'); } catch { /* column exists */ }
+
+// Projects migrations: add new columns to existing projects/prompts tables
+try { sqlite.exec("ALTER TABLE projects ADD COLUMN machine_size TEXT NOT NULL DEFAULT 'free'"); } catch { /* column exists */ }
+try { sqlite.exec("ALTER TABLE projects ADD COLUMN region TEXT NOT NULL DEFAULT 'iad'"); } catch { /* column exists */ }
+try { sqlite.exec("ALTER TABLE projects ADD COLUMN status TEXT NOT NULL DEFAULT 'active'"); } catch { /* column exists */ }
+try { sqlite.exec("ALTER TABLE prompts ADD COLUMN project_id TEXT REFERENCES projects(id) ON DELETE SET NULL"); } catch { /* column exists */ }
 
 // v3 migrations: add user_id to existing tables
 try { sqlite.exec("ALTER TABLE developer_profiles ADD COLUMN user_id TEXT NOT NULL DEFAULT 'local'"); } catch { /* column exists */ }
