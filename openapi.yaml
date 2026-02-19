@@ -410,6 +410,257 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/projects:
+    get:
+      summary: List projects for an organization
+      description: Returns all projects for the specified organization. Requires membership in the org.
+      operationId: listProjects
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Organization ID to list projects for
+      responses:
+        '200':
+          description: Array of projects with prompt counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectWithCount'
+        '400':
+          description: orgId is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a project
+      description: >
+        Creates a new project within an organization. Slug is auto-generated from the
+        project name with deduplication within the org. Requires membership in the org.
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectInput'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  slug:
+                    type: string
+                  orgId:
+                    type: string
+                    format: uuid
+        '400':
+          description: Validation failed (missing orgId or name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/projects/{id}:
+    get:
+      summary: Get a project by ID
+      description: Returns a single project with prompt count. Membership in the project's org is required.
+      operationId: getProjectById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectWithCount'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a project
+      description: Updates project name, description, machine size, or region. Requires owner or admin role in the org.
+      operationId: updateProject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectInput'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  slug:
+                    type: string
+                  description:
+                    type: string
+                    nullable: true
+                  machineSize:
+                    type: string
+                  region:
+                    type: string
+                  updatedAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: Validation failed (empty name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Requires owner or admin role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a project
+      description: >
+        Deletes a project. Prompts linked to this project get project_id set to NULL
+        (not cascade-deleted). Requires owner role in the org.
+      operationId: deleteProject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Requires owner role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /api/runner:
     get:
       summary: Get runner status (stub)
@@ -751,6 +1002,93 @@ components:
       properties:
         error:
           type: string
+
+    ProjectWithCount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orgId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+          nullable: true
+        machineSize:
+          type: string
+          enum: [free, micro, small, medium, large, xl]
+          description: Fly.io machine size tier
+        region:
+          type: string
+          enum: [iad, lax, ams, fra, arn, lhr, sin, gru]
+          description: Fly.io deployment region
+        status:
+          type: string
+          enum: [active, paused, deleted]
+          description: Project status
+        promptCount:
+          type: integer
+          description: Number of prompts in this project
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateProjectInput:
+      type: object
+      required:
+        - orgId
+        - name
+      properties:
+        orgId:
+          type: string
+          format: uuid
+          description: Organization to create the project in
+        name:
+          type: string
+          minLength: 1
+          description: Project name
+          example: My Awesome App
+        description:
+          type: string
+          description: Optional project description
+        machineSize:
+          type: string
+          enum: [free, micro, small, medium, large, xl]
+          default: free
+          description: Fly.io machine size tier
+        region:
+          type: string
+          enum: [iad, lax, ams, fra, arn, lhr, sin, gru]
+          default: iad
+          description: Fly.io deployment region
+
+    UpdateProjectInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: New project name (slug is regenerated)
+        description:
+          type: string
+          nullable: true
+          description: New description, or null to clear
+        machineSize:
+          type: string
+          enum: [free, micro, small, medium, large, xl]
+          description: New machine size tier
+        region:
+          type: string
+          enum: [iad, lax, ams, fra, arn, lhr, sin, gru]
+          description: New deployment region
 
     ValidationError:
       type: object
