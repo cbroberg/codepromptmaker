@@ -6,7 +6,7 @@ function isAuthEnabled(): boolean {
   return !!process.env.AUTH_SECRET;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (!isAuthEnabled()) {
     return NextResponse.next();
   }

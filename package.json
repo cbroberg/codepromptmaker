@@ -13,7 +13,7 @@
     "cli:link": "cd packages/cli && pnpm link --global"
   },
   "devDependencies": {
-    "turbo": "^2.8.9",
+    "turbo": "^2.8.10",
     "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@10.6.5",
