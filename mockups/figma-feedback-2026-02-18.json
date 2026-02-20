@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "mockup": "figma",
+  "exportedAt": "2026-02-18T14:46:38.296Z",
+  "sections": [
+    {
+      "sectionId": "before-after",
+      "sectionLabel": "Before/After Demo",
+      "feedback": "Same idea. This is the best version, but i want to include the Vibe Prompt/Prompt Contract below from the Gemini version. ",
+      "updatedAt": "2026-02-18T14:32:50.218Z"
+    },
+    {
+      "sectionId": "open-source",
+      "sectionLabel": "Open Source Section",
+      "feedback": "We will go with this design. Third box, ad the cpm login example from Gemini and the get started link from Use cloud and also add the docker compose up option to the clone & run locally.",
+      "updatedAt": "2026-02-18T14:41:03.576Z"
+    },
+    {
+      "sectionId": "navbar",
+      "sectionLabel": "Navigation Bar",
+      "feedback": "Header here is really good. But the logo is from the Gemini. We will retain the Sign up button and the Star on GitHub and the logo typ and GH with the cat, but the hover is from Gemini. The line or drop shadow beneath the menu line is bad, so here we will go with Gemini. ",
+      "updatedAt": "2026-02-17T22:39:02.224Z"
+    },
+    {
+      "sectionId": "hero",
+      "sectionLabel": "Hero Section",
+      "feedback": "Transform natural language into structured Plans and Prompt Contracts that make Agentic AI deliver on the first try. \n\nThe size of the sub header text from this hero is best. Now with cli support is also great. Should have a link to a cli explainer page. \n\nWe will also keep the terminal windows from the edition but use the windows type from Gemini but with the colored buttons from Figma. ",
+      "updatedAt": "2026-02-17T22:44:20.366Z"
+    },
+    {
+      "sectionId": "features",
+      "sectionLabel": "Features Grid",
+      "feedback": "We will go with this visual version, but the text should be: \"Everything you need to control the AI\nStop treating LLMs like magic. Treat them like junior developers who need very specific instructions. Built for developers who want to ship faster.\"",
+      "updatedAt": "2026-02-18T14:35:55.392Z"
+    },
+    {
+      "sectionId": "pricing",
+      "sectionLabel": "Pricing Section",
+      "feedback": "Use the term: Start Free. Use the drop shadow around the selected model from Gemini. Also use View Docs in Self- hosted because we will have the docs on the SaaS site. \n\nAlso add hover over the two unselected plans/tiers",
+      "updatedAt": "2026-02-18T14:44:11.495Z"
+    },
+    {
+      "sectionId": "how-it-works",
+      "sectionLabel": "How It Works",
+      "feedback": "This is how is should be",
+      "updatedAt": "2026-02-18T14:34:22.328Z"
+    }
+  ]
+}

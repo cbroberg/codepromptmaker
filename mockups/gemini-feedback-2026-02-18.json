@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "mockup": "gemini",
+  "exportedAt": "2026-02-18T14:46:32.983Z",
+  "sections": [
+    {
+      "sectionId": "open-source",
+      "sectionLabel": "Open Source Section",
+      "feedback": "We will mostly go with tge figma design and reuse bits from here. ",
+      "updatedAt": "2026-02-18T14:41:26.437Z"
+    },
+    {
+      "sectionId": "hero",
+      "sectionLabel": "Hero Section",
+      "feedback": "Vibe Prompt/Prompt Contract\nswitch must be inserted belov the Vague/Prompt Contract section in the Figma version.",
+      "updatedAt": "2026-02-18T14:33:39.144Z"
+    },
+    {
+      "sectionId": "footer",
+      "sectionLabel": "Footer",
+      "feedback": "Use this footer.\nBuild with <3 in Aalborg, Denmark by Christian Broberg & Claude.\n\nAfter All rights ... add Open source under MIT License.",
+      "updatedAt": "2026-02-18T14:46:13.939Z"
+    },
+    {
+      "sectionId": "how-it-works",
+      "sectionLabel": "How It Works",
+      "feedback": "This doesn't fly, we will go with the figma version.",
+      "updatedAt": "2026-02-18T14:34:10.176Z"
+    },
+    {
+      "sectionId": "cli",
+      "sectionLabel": "CLI Section",
+      "feedback": "This is perfect, but the image of the terminal installation from Figma should be inserted below but inside the windows style from here/Gemini. ",
+      "updatedAt": "2026-02-18T14:37:56.360Z"
+    },
+    {
+      "sectionId": "pricing",
+      "sectionLabel": "Pricing Section",
+      "feedback": "Use drop shadow from the selected on the figma design. ",
+      "updatedAt": "2026-02-18T14:43:44.754Z"
+    },
+    {
+      "sectionId": "navbar",
+      "sectionLabel": "Navigation Bar",
+      "feedback": "We will keep the logo from \nthis version. We will also keep the menu hover from here. ",
+      "updatedAt": "2026-02-17T22:36:30.305Z"
+    }
+  ]
+}
