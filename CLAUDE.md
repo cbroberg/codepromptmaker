@@ -261,6 +261,18 @@ const mode = existsSync(CONFIG_PATH) ? 'cloud' : 'local';
 - Polling every 5 seconds — simple, robust, battle-tested
 - SSE also rejected (persistent connection overhead)
 
+### Execution Environments — Read Before Implementing
+
+**IMPORTANT**: Before implementing v4 runner container support, read:
+- `docs/v4-cpm-autonomous-runner-plan-add-2.md` — full research on Docker, Docker Sandbox, Fly.io and Podman modes, auth patterns, token management, and discovered gotchas
+- Reference implementation: `~/Apps/cbroberg/cc-docker-demo` (GitHub: cbroberg/cc-docker-demo)
+
+Key decisions already validated by the proof-of-concept:
+- **Start with Mode A (plain Docker)** — universal, simplest auth (`CLAUDE_CODE_OAUTH_TOKEN` env var)
+- **Token auto-renewal**: run `claude -p "hi" --max-turns 1` when < 2h remaining — CC does OAuth refresh automatically
+- **Linux self-sufficiency**: machines with CC installed manage their own token via `~/.claude/.credentials.json`
+- **Dockerfile**: copy from `cc-docker-demo/Dockerfile` — `node:22-slim`, non-root agent user, `hasCompletedOnboarding: true`, entrypoint `claude -p --dangerously-skip-permissions`, build as `linux/amd64`
+
 ---
 
 ## Development Environment
