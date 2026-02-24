@@ -154,7 +154,7 @@ function HeroSection() {
 
           {/* Subheader — updated per feedback */}
           <p className="mb-10 text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            Transform natural language into structured Plans and Prompt Contracts that make Agentic AI deliver on the first try.
+            Transform natural language into structured Plans and Prompt Contracts that make agentic AI deliver complete production-ready applications on the first try.
           </p>
 
           {/* CTA buttons — Figma */}
