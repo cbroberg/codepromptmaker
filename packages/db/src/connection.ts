@@ -1,4 +1,6 @@
-import Database from 'better-sqlite3';
+import { createRequire } from 'module';
+const _req = createRequire(process.cwd() + '/package.json');
+const Database = _req('better-sqlite3') as typeof import('better-sqlite3').default;
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from './schema';
 

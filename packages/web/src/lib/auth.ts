@@ -4,9 +4,14 @@ import Google from 'next-auth/providers/google';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from '@cpm/db';
 
+const providers = [
+  GitHub,
+  ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET ? [Google] : []),
+];
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db),
-  providers: [GitHub, Google],
+  providers,
   pages: { signIn: '/auth/signin' },
   callbacks: {
     session({ session, user }) {
